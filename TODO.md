@@ -36,34 +36,43 @@ mirror, per upstream's explicit request not to fork back to GitHub). Domain: t8s
   `/home/botuser/.codeberg_token.txt` via a one-off `http.extraheader` (never embed in the remote
   URL). GitHub (`github-mirror`) via `gh auth token`, same pattern. Push both after every commit.
 
-## Remaining work (not yet started, no particular order agreed yet)
+## Deployment (DONE, 2026-07-26)
 
-- ~~Rebrand pass 2~~ **DONE** (2026-07-26): T-8-styled favicon/icons (4x4 step-grid mark), Welcome
-  tab rewritten with T-8 usage instructions + credits (Nikša Barlović + Claude, crediting Strudel/
-  TidalCycles contributors), fixed a dead `Footer/AvatarList.astro` import inherited from upstream.
-  Still open from the original pass 2 scope: deep docs/blog prose still says "Strudel" throughout,
-  Algolia search reindexing under our own account — lower priority, not blocking anything.
-- **Low priority**: T8Tab's peak/rms meters feel laggy (Nikša noticed 2026-07-26). Likely culprits:
-  300ms poll interval combined with the CSS `transition-[width] duration-100` on `MeterBar`, and/or
-  `/status` only reflecting audio_bridge.py's own 100ms `WRITE_INTERVAL` ring-buffer cadence. Possible
-  fix later: poll `/status` faster (~100ms) and separately from the slower `/levels` bar-chart poll,
-  drop or shorten the CSS transition for an instant-attack/slower-decay VU-meter feel. Not started.
+Self-hosted on this VPS via nginx + Let's Encrypt (matches the same pattern as Nikša's other
+`.fyi`/personal domains already on this box). DNS (Porkbun) A record points at the VPS's public IP.
+nginx config: `/etc/nginx/sites-available/t8strudel.fyi` — port 80 redirects to https, real traffic
+terminates at `127.0.0.1:8443` (this box's standard pattern: `sslh` on the real port 443
+multiplexes SSH-over-443 vs TLS, forwarding TLS to nginx's 8443 vhost). Cert via
+`certbot certonly --nginx -d t8strudel.fyi -d www.t8strudel.fyi`, auto-renews.
 
-- Rebrand pass 2: favicon/logo image asset (still generic Strudel icon), a real Footer component
-  with Strudel/TidalCycles credit (currently doesn't exist even upstream — broken import), deep
-  docs/blog prose still says "Strudel" throughout, Algolia search reindexing under our own account.
-- ~~Deployment to t8strudel.fyi~~ **DONE** (2026-07-26): self-hosted on this VPS via nginx +
-  Let's Encrypt (matches the same pattern as Nikša's other `.fyi`/personal domains already on this
-  box). DNS (Porkbun) A record points at the VPS's public IP. nginx config:
-  `/etc/nginx/sites-available/t8strudel.fyi` — port 80 redirects to https, real traffic terminates
-  at `127.0.0.1:8443` (this box's standard pattern: `sslh` on the real port 443 multiplexes
-  SSH-over-443 vs TLS, forwarding TLS to nginx's 8443 vhost). Cert via
-  `certbot certonly --nginx -d t8strudel.fyi -d www.t8strudel.fyi`, auto-renews.
-  **Deploy workflow for future changes — no CI yet, fully manual:**
-  ```bash
-  cd /home/botuser/t8strudel && sudo -u botuser bash -c 'export PATH=$HOME/.npm-global/bin:$PATH; pnpm build'
-  # nginx serves website/dist/ directly, no restart needed -- just rebuilding updates the live site
-  ```
-  Confirmed live: HTTPS 200, valid cert (CN=t8strudel.fyi), correct title/favicon served.
-- `t8clock`/`t8transport`'s `ticksPerCycle` default (48) needs tuning against a real BPM/cps
-  setting — not yet dialed in against actual musical tempo, just structurally confirmed to work.
+**Deploy workflow for future changes — no CI yet, fully manual:**
+```bash
+cd /home/botuser/t8strudel && sudo -u botuser bash -c 'export PATH=$HOME/.npm-global/bin:$PATH; pnpm build'
+# nginx serves website/dist/ directly, no restart needed -- just rebuilding updates the live site
+```
+
+## Code review (2026-07-26)
+
+Ran an 8-angle automated review of the session's diff. Fixed (see git log for exact commits):
+- T8Tab's laggy meters: root cause was `/status`+`/levels` serialized into one poll cycle, plus
+  `/levels` re-fetching ~94% the same window every 300ms — split into two independently-paced polls.
+- `t8select(bank, pattern)` now validates its range and throws immediately, matching `t8drum`'s
+  fail-loud design (previously silently sent a real-but-wrong Program Change out of range).
+- `t8drum`'s JSDoc corrected — it does NOT actually throw a catchable exception for unknown voice
+  names (Pattern.queryArc swallows the error and returns an empty hap array); the doc overstated it.
+- `packages/midi/README.md` now documents the `autostart` option (was only mentioned in the
+  top-level repo README, not the package a MIDI user would actually read).
+- **Still needs a live check, not yet confirmed**: `T8Tab.jsx` fetches plain `http://127.0.0.1:8737`
+  from the now-HTTPS `https://t8strudel.fyi` — this may be blocked as mixed content by the browser
+  regardless of whether `audio_bridge.py` itself is healthy (a `curl` from a Mac terminal succeeding
+  does NOT rule this out). Added a CORS allowlist + `do_OPTIONS`/Private-Network-Access header on
+  the bridge side (`roland-t8` repo) since that part was independently broken too, but the mixed-
+  content half is a browser policy question that needs opening the T8 tab on the real HTTPS site to
+  confirm. If it turns out blocked, the durable fix is giving `audio_bridge.py` its own trusted
+  HTTPS endpoint (e.g. a local reverse proxy + a DNS-01 cert for a subdomain resolving to
+  127.0.0.1) — a real infra decision, not attempted here.
+
+## `t8clock`/`t8transport` tempo tuning (not started)
+
+`ticksPerCycle` default (48) needs tuning against a real BPM/cps setting — not yet dialed in
+against actual musical tempo, just structurally confirmed to work.
