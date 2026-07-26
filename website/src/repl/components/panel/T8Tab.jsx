@@ -68,6 +68,43 @@ function useAudioBridge() {
   return { status, levels, error };
 }
 
+// audio_bridge.py only ever runs on Nikša's own Mac -- for every other
+// visitor the bridge fetch above will always fail. That's fine: Web MIDI
+// (already required for .midi() output to reach a real T-8 at all) is
+// enough on its own to tell someone "yes, your T-8 is connected, sound is
+// coming out of its own audio jacks" without needing any extra local
+// software.
+function useT8MidiOutputDetected() {
+  const [found, setFound] = useState(null); // null = still checking / unsupported
+
+  useEffect(() => {
+    let cancelled = false;
+    if (typeof navigator === 'undefined' || !navigator.requestMIDIAccess) {
+      setFound(false);
+      return;
+    }
+    function scan(access) {
+      if (cancelled) return;
+      const hasT8 = Array.from(access.outputs.values()).some((o) => /t-8/i.test(o.name || ''));
+      setFound(hasT8);
+    }
+    navigator
+      .requestMIDIAccess()
+      .then((access) => {
+        scan(access);
+        access.onstatechange = () => scan(access);
+      })
+      .catch(() => {
+        if (!cancelled) setFound(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return found;
+}
+
 function MeterBar({ value }) {
   const pct = Math.min(100, Math.round((value ?? 0) * 100));
   const color = pct > 80 ? 'bg-red-500' : pct > 40 ? 'bg-orange-500' : 'bg-green-600';
@@ -84,35 +121,53 @@ function Dot({ ok }) {
 
 export function T8Tab() {
   const { status, levels, error } = useAudioBridge();
+  const midiFound = useT8MidiOutputDetected();
 
   if (error) {
-    const isHttpsPage = typeof window !== 'undefined' && window.location.protocol === 'https:';
     return (
-      <div className="p-4 text-foreground space-y-2 text-sm">
-        <h2 className="text-lg font-bold">T-8 Audio Bridge</h2>
-        <p className="text-red-400">Not reachable: {error}</p>
-        <p className="opacity-70">
-          This needs Chrome running on the same Mac the T-8 is connected to, with{' '}
-          <code>audio_bridge.py</code> running (it starts automatically as a LaunchAgent -- see the{' '}
-          <a
-            className="underline"
-            href="https://codeberg.org/catcam/roland-t8"
-            target="_blank"
-            rel="noreferrer"
-          >
-            roland-t8
-          </a>{' '}
-          project). Check from a terminal on the Mac:
-        </p>
-        <pre className="bg-black/30 p-2 rounded overflow-auto">curl http://127.0.0.1:8737/health</pre>
-        {isHttpsPage && (
+      <div className="p-4 text-foreground space-y-4 text-sm">
+        <h2 className="text-lg font-bold">T-8</h2>
+
+        <div className="flex items-center space-x-2">
+          <Dot ok={midiFound === true} />
+          <span>
+            {midiFound === null && 'Checking for a T-8 MIDI connection...'}
+            {midiFound === true && 'T-8 MIDI connected'}
+            {midiFound === false && 'No T-8 MIDI device detected'}
+          </span>
+        </div>
+
+        {midiFound === true && (
           <p className="opacity-70">
-            Note: this page is loaded over HTTPS but the bridge only speaks plain HTTP on{' '}
-            <code>127.0.0.1:8737</code> -- if <code>curl</code> above works fine but this tab still
-            says unreachable, your browser is likely blocking the request as mixed content (an
-            HTTPS page fetching a plain-HTTP address), not an actual connectivity problem.
+            Sound plays directly through the T-8&apos;s own audio output -- nothing routes through
+            this browser tab, so there&apos;s nothing to hear here. Just play a pattern with{' '}
+            <code>.midi(&apos;T-8 MIDI IN&apos;)</code> and listen to the hardware itself.
           </p>
         )}
+        {midiFound === false && (
+          <p className="opacity-70">
+            Connect a Roland T-8 over USB and refresh this tab. Once your browser sees its MIDI
+            port, patterns sent with <code>.midi(&apos;T-8 MIDI IN&apos;)</code> will play through
+            the T-8&apos;s own audio output.
+          </p>
+        )}
+
+        <details className="opacity-50 text-xs">
+          <summary className="cursor-pointer">Advanced: live audio-level meters</summary>
+          <p className="mt-2">
+            Not reachable: {error}. That&apos;s expected unless you&apos;re running{' '}
+            <a
+              className="underline"
+              href="https://codeberg.org/catcam/roland-t8"
+              target="_blank"
+              rel="noreferrer"
+            >
+              roland-t8
+            </a>
+            &apos;s <code>audio_bridge.py</code> locally for peak/rms confirmation -- it&apos;s
+            optional and has nothing to do with whether the T-8 itself plays sound.
+          </p>
+        </details>
       </div>
     );
   }
