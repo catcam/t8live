@@ -52,7 +52,18 @@ mirror, per upstream's explicit request not to fork back to GitHub). Domain: t8s
 - Rebrand pass 2: favicon/logo image asset (still generic Strudel icon), a real Footer component
   with Strudel/TidalCycles credit (currently doesn't exist even upstream — broken import), deep
   docs/blog prose still says "Strudel" throughout, Algolia search reindexing under our own account.
-- Deployment to t8strudel.fyi (hosting target not decided yet — Codeberg Pages? Vercel/Netlify
-  pointed at the Codeberg repo? A VPS?).
+- ~~Deployment to t8strudel.fyi~~ **DONE** (2026-07-26): self-hosted on this VPS via nginx +
+  Let's Encrypt (matches the same pattern as Nikša's other `.fyi`/personal domains already on this
+  box). DNS (Porkbun) A record points at the VPS's public IP. nginx config:
+  `/etc/nginx/sites-available/t8strudel.fyi` — port 80 redirects to https, real traffic terminates
+  at `127.0.0.1:8443` (this box's standard pattern: `sslh` on the real port 443 multiplexes
+  SSH-over-443 vs TLS, forwarding TLS to nginx's 8443 vhost). Cert via
+  `certbot certonly --nginx -d t8strudel.fyi -d www.t8strudel.fyi`, auto-renews.
+  **Deploy workflow for future changes — no CI yet, fully manual:**
+  ```bash
+  cd /home/botuser/t8strudel && sudo -u botuser bash -c 'export PATH=$HOME/.npm-global/bin:$PATH; pnpm build'
+  # nginx serves website/dist/ directly, no restart needed -- just rebuilding updates the live site
+  ```
+  Confirmed live: HTTPS 200, valid cert (CN=t8strudel.fyi), correct title/favicon served.
 - `t8clock`/`t8transport`'s `ticksPerCycle` default (48) needs tuning against a real BPM/cps
   setting — not yet dialed in against actual musical tempo, just structurally confirmed to work.
