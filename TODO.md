@@ -38,6 +38,11 @@ mirror, per upstream's explicit request not to fork back to GitHub). Domain: t8s
 
 ## Remaining work (not yet started, no particular order agreed yet)
 
+- ~~Rebrand pass 2~~ **DONE** (2026-07-26): T-8-styled favicon/icons (4x4 step-grid mark), Welcome
+  tab rewritten with T-8 usage instructions + credits (Nikša Barlović + Claude, crediting Strudel/
+  TidalCycles contributors), fixed a dead `Footer/AvatarList.astro` import inherited from upstream.
+  Still open from the original pass 2 scope: deep docs/blog prose still says "Strudel" throughout,
+  Algolia search reindexing under our own account — lower priority, not blocking anything.
 - **Low priority**: T8Tab's peak/rms meters feel laggy (Nikša noticed 2026-07-26). Likely culprits:
   300ms poll interval combined with the CSS `transition-[width] duration-100` on `MeterBar`, and/or
   `/status` only reflecting audio_bridge.py's own 100ms `WRITE_INTERVAL` ring-buffer cadence. Possible
