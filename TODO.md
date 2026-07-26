@@ -62,15 +62,11 @@ Ran an 8-angle automated review of the session's diff. Fixed (see git log for ex
   names (Pattern.queryArc swallows the error and returns an empty hap array); the doc overstated it.
 - `packages/midi/README.md` now documents the `autostart` option (was only mentioned in the
   top-level repo README, not the package a MIDI user would actually read).
-- **Still needs a live check, not yet confirmed**: `T8Tab.jsx` fetches plain `http://127.0.0.1:8737`
-  from the now-HTTPS `https://t8strudel.fyi` — this may be blocked as mixed content by the browser
-  regardless of whether `audio_bridge.py` itself is healthy (a `curl` from a Mac terminal succeeding
-  does NOT rule this out). Added a CORS allowlist + `do_OPTIONS`/Private-Network-Access header on
-  the bridge side (`roland-t8` repo) since that part was independently broken too, but the mixed-
-  content half is a browser policy question that needs opening the T8 tab on the real HTTPS site to
-  confirm. If it turns out blocked, the durable fix is giving `audio_bridge.py` its own trusted
-  HTTPS endpoint (e.g. a local reverse proxy + a DNS-01 cert for a subdomain resolving to
-  127.0.0.1) — a real infra decision, not attempted here.
+- **Confirmed working live**: `T8Tab.jsx` fetches plain `http://127.0.0.1:8737` from the HTTPS
+  `https://t8strudel.fyi` page. Was worried this might be blocked as mixed content, but Nikša
+  confirmed on the real production site that the T8 tab works correctly -- the CORS allowlist +
+  `do_OPTIONS`/Private-Network-Access fix on the bridge side (`roland-t8` repo) was sufficient, no
+  further HTTPS-for-the-bridge infra needed.
 
 ## `t8clock`/`t8transport` tempo tuning (not started)
 
