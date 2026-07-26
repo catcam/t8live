@@ -320,6 +320,13 @@ Pattern.prototype.midi = function (midiport, options = {}) {
     gain: 1, // Default gain
     midimap: 'default', // Default MIDI map
     midiport: midiport, // Store the port in the config
+    // t8strudel change: default off (see the unconditional sendStart() below).
+    // Devices in an "auto sync" mode (follow external clock if present, else
+    // free-run on their own internal clock/pattern -- confirmed on the T-8)
+    // will start playing back whatever they have loaded internally the
+    // moment they see a bare Start with no accompanying clock stream. Pass
+    // { autostart: true } to opt back into the old unconditional behavior.
+    autostart: false,
     ...options, // Override defaults with provided options
   };
 
@@ -430,7 +437,7 @@ Pattern.prototype.midi = function (midiport, options = {}) {
     }
 
     // Handle midicmd
-    if (hap.whole.begin + 0 === 0) {
+    if (midiConfig.autostart && hap.whole.begin + 0 === 0) {
       // we need to start here because we have the timing info
       scheduleAtTime(() => {
         device.sendStart();
