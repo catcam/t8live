@@ -51,6 +51,19 @@ cd /home/botuser/t8strudel && sudo -u botuser bash -c 'export PATH=$HOME/.npm-gl
 # nginx serves website/dist/ directly, no restart needed -- just rebuilding updates the live site
 ```
 
+## Analytics (DONE, 2026-07-26)
+
+Self-hosted, privacy-friendly, no JS/cookies on the site itself: GoAccess parses nginx's own access
+log for t8strudel.fyi (dedicated log added, previously shared the box's global one) and generates a
+static HTML report every 5 minutes via a systemd timer.
+
+- Log: `/var/log/nginx/t8strudel.fyi.access.log`
+- Report generator: `/usr/local/bin/t8strudel-goaccess-report.sh`, run by
+  `t8strudel-goaccess.timer`/`.service` (systemd, every 5 min, `systemctl list-timers` to check)
+- Served at **https://t8strudel.fyi/analytics/** (password-protected: `/etc/nginx/.htpasswd-t8strudel`,
+  user `niksa` — password given to Nikša directly, not written here)
+- No account/subdomain/DNS needed — reuses the existing domain + nginx setup entirely.
+
 ## Code review (2026-07-26)
 
 Ran an 8-angle automated review of the session's diff. Fixed (see git log for exact commits):
