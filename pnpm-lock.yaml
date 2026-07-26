@@ -516,6 +516,9 @@ importers:
       '@strudel/soundfonts':
         specifier: workspace:*
         version: link:../soundfonts
+      '@strudel/t8':
+        specifier: workspace:*
+        version: link:../t8
       '@strudel/tonal':
         specifier: workspace:*
         version: link:../tonal
@@ -604,6 +607,19 @@ importers:
       wav-encoder:
         specifier: ^1.3.0
         version: 1.3.0
+
+  packages/t8:
+    dependencies:
+      '@strudel/core':
+        specifier: workspace:*
+        version: link:../core
+      '@strudel/mini':
+        specifier: workspace:*
+        version: link:../mini
+    devDependencies:
+      vite:
+        specifier: ^6.0.11
+        version: 6.0.11(@types/node@22.10.10)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.7.0)
 
   packages/tidal:
     dependencies:
@@ -844,6 +860,9 @@ importers:
       '@strudel/soundfonts':
         specifier: workspace:*
         version: link:../packages/soundfonts
+      '@strudel/t8':
+        specifier: workspace:*
+        version: link:../packages/t8
       '@strudel/tidal':
         specifier: workspace:*
         version: link:../packages/tidal

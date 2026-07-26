@@ -43,6 +43,7 @@
     "@strudel/osc": "workspace:*",
     "@strudel/serial": "workspace:*",
     "@strudel/soundfonts": "workspace:*",
+    "@strudel/t8": "workspace:*",
     "@strudel/tidal": "workspace:*",
     "@strudel/tonal": "workspace:*",
     "@strudel/transpiler": "workspace:*",

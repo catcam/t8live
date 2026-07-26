@@ -1,0 +1,43 @@
+{
+  "name": "@strudel/t8",
+  "version": "0.1.0",
+  "description": "Roland AIRA Compact T-8 helpers for strudel (drum voices, pattern select, clock/transport)",
+  "main": "index.mjs",
+  "type": "module",
+  "publishConfig": {
+    "main": "dist/index.mjs"
+  },
+  "scripts": {
+    "build": "vite build",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://codeberg.org/catcam/t8strudel.git"
+  },
+  "keywords": [
+    "tidalcycles",
+    "strudel",
+    "pattern",
+    "livecoding",
+    "algorave",
+    "roland",
+    "t-8",
+    "midi"
+  ],
+  "license": "AGPL-3.0-or-later",
+  "bugs": {
+    "url": "https://codeberg.org/catcam/t8strudel/issues"
+  },
+  "homepage": "https://t8strudel.fyi",
+  "dependencies": {
+    "@strudel/core": "workspace:*",
+    "@strudel/mini": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^6.0.11"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
