@@ -38,6 +38,12 @@ mirror, per upstream's explicit request not to fork back to GitHub). Domain: t8s
 
 ## Remaining work (not yet started, no particular order agreed yet)
 
+- **Low priority**: T8Tab's peak/rms meters feel laggy (Nikša noticed 2026-07-26). Likely culprits:
+  300ms poll interval combined with the CSS `transition-[width] duration-100` on `MeterBar`, and/or
+  `/status` only reflecting audio_bridge.py's own 100ms `WRITE_INTERVAL` ring-buffer cadence. Possible
+  fix later: poll `/status` faster (~100ms) and separately from the slower `/levels` bar-chart poll,
+  drop or shorten the CSS transition for an instant-attack/slower-decay VU-meter feel. Not started.
+
 - Rebrand pass 2: favicon/logo image asset (still generic Strudel icon), a real Footer component
   with Strudel/TidalCycles credit (currently doesn't exist even upstream — broken import), deep
   docs/blog prose still says "Strudel" throughout, Algolia search reindexing under our own account.
