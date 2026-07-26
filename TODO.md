@@ -12,6 +12,11 @@ mirror, per upstream's explicit request not to fork back to GitHub). Domain: t8s
   `t8clock`, `t8transport` — MIDI helpers built on `@strudel/midi`'s existing Web MIDI output.
   9-test vitest suite. **Confirmed working on real hardware**: heard `t8drum("bd ~ sd ~ bd bd sd
   ~").midi('T-8 MIDI IN')` play live through Chrome on the Mac.
+- **T-8 audio-confirm tab** (`website/src/repl/components/panel/T8Tab.jsx`): new REPL panel tab
+  polling `audio_bridge.py`'s `/status` + `/levels` every 300ms — device-present dot, passthrough
+  state, peak/rms meters, small bar chart of the last 5s. Required adding CORS headers to
+  `audio_bridge.py` (companion commit in the `roland-t8` repo). **Confirmed working**: Nikša sees
+  live meters in the browser tab.
 
 ## Known workflow notes (don't re-derive from scratch)
 
@@ -36,9 +41,6 @@ mirror, per upstream's explicit request not to fork back to GitHub). Domain: t8s
 - Rebrand pass 2: favicon/logo image asset (still generic Strudel icon), a real Footer component
   with Strudel/TidalCycles credit (currently doesn't exist even upstream — broken import), deep
   docs/blog prose still says "Strudel" throughout, Algolia search reindexing under our own account.
-- Audio-confirm panel: a UI panel in the REPL reading `audio_bridge.py`'s `/status` and `/levels`
-  (from the `roland-t8` project) so Claude/the user gets the same audio-confirmed feedback loop
-  inside the browser, not just via the separate Mac CLI tools.
 - Deployment to t8strudel.fyi (hosting target not decided yet — Codeberg Pages? Vercel/Netlify
   pointed at the Codeberg repo? A VPS?).
 - `t8clock`/`t8transport`'s `ticksPerCycle` default (48) needs tuning against a real BPM/cps
