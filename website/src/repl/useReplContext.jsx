@@ -154,7 +154,16 @@ export function useReplContext() {
       } else {
         /* const { code: randomTune, name } = await getRandomTune();
         code = randomTune; */
-        code = '$: s("[bd <hh oh>]*2").bank("tr909").dec(.4)';
+        code = `setcpm(163/4)
+
+stack(
+  t8drum("bd ~ ~ ~ bd ~ ~ ~ bd ~ ~ ~ bd ~ ~ ~").color("red"),
+  t8drum("~ ~ ~ ~ sd ~ ~ ~ ~ ~ ~ ~ sd ~ ~ ~").color("orange"),
+  t8drum("ch*8").color("yellow"),
+  t8drum("~ ~ ~ oh ~ ~ ~ ~ ~ ~ ~ oh ~ ~ ~ ~").color("cyan"),
+  note("<c2 c2 eb2 g2>").euclid(5,8).t8bass().color("magenta")
+).punchcard()
+ .midi('T-8 MIDI IN')`;
         msg = `Default code has been loaded`;
       }
       editor.setCode(code);
