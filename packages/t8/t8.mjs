@@ -41,8 +41,11 @@ export const T8_RHYTHM_NOTES = {
 /**
  * Maps T-8 rhythm voice names (bd, sd, clap, tom, ch, oh) to their real MIDI
  * notes and sets the rhythm channel (10) -- still needs .midi(T8_PORT) to
- * actually send. Unrecognized voice names throw, so typos fail loudly
- * instead of silently sending the wrong note.
+ * actually send. An unrecognized voice name throws inside the pattern query,
+ * which strudel's Pattern.queryArc catches and logs rather than propagating
+ * -- in practice this means the whole queried cycle goes silent (check the
+ * console/log for "[t8drum] unknown T-8 voice") instead of sending a wrong
+ * note, but it will NOT throw a catchable exception in your own code.
  * @name t8drum
  * @tags external_io, midi, t8
  * @example
@@ -81,13 +84,22 @@ export const t8bass = register('t8bass', (pat) => {
 /**
  * Builds a Program Change pattern that selects a T-8 pattern slot (bank
  * 1-4, pattern 1-16), on the T-8's Program Change channel (16). Still needs
- * .midi(T8_PORT) to actually send.
+ * .midi(T8_PORT) to actually send. Throws immediately (not inside a pattern
+ * query, unlike t8drum) if bank/pattern are out of range, since a silently
+ * wrong bank/pattern number would select a real but unintended slot on the
+ * device rather than doing nothing.
  * @name t8select
  * @tags external_io, midi, t8
  * @example
  * t8select(4, 15).midi('T-8 MIDI IN')
  */
 export function t8select(bank, pattern) {
+  if (!Number.isInteger(bank) || bank < 1 || bank > 4) {
+    throw new Error(`[t8select] bank must be an integer 1-4, got ${bank}`);
+  }
+  if (!Number.isInteger(pattern) || pattern < 1 || pattern > 16) {
+    throw new Error(`[t8select] pattern must be an integer 1-16, got ${pattern}`);
+  }
   const pc = (bank - 1) * 16 + (pattern - 1);
   return progNum(pc).midichan(T8_PC_CHANNEL);
 }

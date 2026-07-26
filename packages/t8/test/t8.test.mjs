@@ -65,6 +65,14 @@ describe('t8select', () => {
     const haps = t8select(1, 1).queryArc(0, 1);
     expect(haps[0].value.progNum).toBe(0);
   });
+
+  it('throws immediately (not inside a query) on an out-of-range bank', () => {
+    expect(() => t8select(5, 1)).toThrow(/bank must be an integer 1-4/);
+  });
+
+  it('throws immediately on an out-of-range pattern', () => {
+    expect(() => t8select(1, 17)).toThrow(/pattern must be an integer 1-16/);
+  });
 });
 
 describe('t8clock', () => {

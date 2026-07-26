@@ -73,6 +73,7 @@ $: note("c a f e").midi('IAC Driver', { isController: true, midimap: 'default'})
 | gain | number | 1 | Default gain multiplier for velocity (0-1) |
 | midimap | string | 'default' | Name of MIDI mapping to use for control changes |
 | midiport | string/number | - | MIDI device name or index |
+| autostart | boolean | **false** (t8strudel fork) | Whether to automatically send a MIDI Start message whenever a hap's cycle begins at 0. Upstream Strudel always does this unconditionally; this fork defaults it off because some hardware (e.g. the Roland T-8 in `SYnC=AUTO`) falls back to its own internal clock on a bare Start with no accompanying clock stream, and starts playing its own sequencer instead of following along. Pass `{ autostart: true }` to restore the old behavior. Use `midicmd`'s `start`/`stop`/`clock` (below) for deliberate, clock-accompanied transport control regardless of this setting. |
 
 </details>
 
