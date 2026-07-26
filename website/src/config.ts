@@ -1,13 +1,14 @@
 export const SITE = {
-  title: 'Strudel',
-  description: 'Strudel is a music live coding editor that brings TidalCycles to the browser.',
+  title: 't8strudel',
+  description:
+    't8strudel is a music live coding editor for the Roland AIRA Compact T-8, forked from Strudel (which brings TidalCycles to the browser).',
   defaultLanguage: 'en',
 };
 
 export const OPEN_GRAPH = {
   image: {
-    src: 'https://strudel.cc/icon.png',
-    alt: 'Strudel Logo',
+    src: 'https://t8strudel.fyi/icon.png',
+    alt: 't8strudel Logo',
   },
 };
 
@@ -28,7 +29,7 @@ export const KNOWN_LANGUAGES = {
 } as const;
 export const KNOWN_LANGUAGE_CODES = Object.values(KNOWN_LANGUAGES);
 
-export const GITHUB_EDIT_URL = `https://codeberg.org/uzu/strudel/src/branch/main/website`;
+export const GITHUB_EDIT_URL = `https://codeberg.org/catcam/t8strudel/src/branch/main/website`;
 
 export const COMMUNITY_INVITE_URL = `https://discord.com/invite/HGEdXmRkzT`;
 

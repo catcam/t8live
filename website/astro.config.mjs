@@ -12,8 +12,8 @@ import AstroPWA from '@vite-pwa/astro';
 
 import process from 'node:process';
 
-const site = process.env.SITE_URL || `https://strudel.cc/`; // root url without a path
-const base = process.env.BASE_PATH || ''; // base path of the strudel site
+const site = process.env.SITE_URL || `https://t8strudel.fyi/`; // root url without a path
+const base = process.env.BASE_PATH || ''; // base path of the t8strudel site
 
 const baseNoTrailing = base.endsWith('/') ? base.slice(0, -1) : base;
 
@@ -102,11 +102,11 @@ export default defineConfig({
       },
       manifest: {
         includeAssets: ['favicon.ico', 'icons/apple-icon-180.png'],
-        name: 'Strudel REPL',
-        short_name: 'Strudel',
+        name: 't8strudel REPL',
+        short_name: 't8strudel',
         description:
-          'Strudel is a music live coding environment for the browser, porting the TidalCycles pattern language to JavaScript.',
-        theme_color: '#222222',
+          't8strudel is a music live coding environment for the Roland AIRA Compact T-8, forked from Strudel (a port of TidalCycles to JavaScript).',
+        theme_color: '#161412',
         icons: [
           {
             src: 'icons/manifest-icon-192.maskable.png',

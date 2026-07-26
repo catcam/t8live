@@ -48,7 +48,7 @@ export const defaultSettings = {
   isTabIndentationEnabled: false,
   isMultiCursorEnabled: false,
   isBlockBasedEvalEnabled: false,
-  theme: 'strudelTheme',
+  theme: 't808Theme',
   fontFamily: 'monospace',
   fontSize: 18,
   latestCode: '',

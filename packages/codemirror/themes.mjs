@@ -1,4 +1,5 @@
 import strudelTheme, { settings as strudelThemeSettings } from './themes/strudel-theme.mjs';
+import t808Theme, { settings as t808ThemeSettings } from './themes/t8-808.mjs';
 import bluescreen, { settings as bluescreenSettings } from './themes/bluescreen.mjs';
 import blackscreen, { settings as blackscreenSettings } from './themes/blackscreen.mjs';
 import whitescreen, { settings as whitescreenSettings } from './themes/whitescreen.mjs';
@@ -42,6 +43,7 @@ import noctisLilac, { settings as noctisLilacSettings } from './themes/noctisLil
 
 import { setTheme } from '@strudel/draw';
 export const themes = {
+  t808Theme,
   strudelTheme,
   algoboy,
   archBtw,
@@ -84,6 +86,7 @@ export const themes = {
 };
 
 export const settings = {
+  t808Theme: t808ThemeSettings,
   strudelTheme: strudelThemeSettings,
   bluescreen: bluescreenSettings,
   bluescreenlight: bluescreenlightsettings,
@@ -163,7 +166,7 @@ function stringifySafe(json) {
   return JSON.stringify(json, getCircularReplacer());
 }
 
-export const theme = (theme) => themes[theme] || themes.strudelTheme;
+export const theme = (theme) => themes[theme] || themes.t808Theme;
 
 // css style injection helpers
 export function injectStyle(rule) {
@@ -193,9 +196,9 @@ export function activateTheme(name) {
   }
   currentTheme = name;
   if (!settings[name]) {
-    console.warn('theme', name, 'has no settings.. defaulting to strudelTheme settings');
+    console.warn('theme', name, 'has no settings.. defaulting to t808Theme settings');
   }
-  const themeSettings = settings[name] || settings.strudelTheme;
+  const themeSettings = settings[name] || settings.t808Theme;
   // set css variables
   themeStyle.innerHTML = `:root {
       color-scheme: ${themeSettings.light ? 'light' : 'dark'};

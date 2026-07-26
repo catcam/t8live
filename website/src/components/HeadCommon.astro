@@ -11,16 +11,16 @@ const baseNoTrailing = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width" />
 <meta name="generator" content={Astro.generator} />
-<link rel="alternate" type="application/rss+xml" title={`RSS Feed for strudel.cc`} href="/rss.xml" />
+<link rel="alternate" type="application/rss+xml" title={`RSS Feed for t8strudel.fyi`} href="/rss.xml" />
 <link rel="icon" type="image/svg+xml" href={`${baseNoTrailing}/favicon.ico`} />
 
 <meta
   name="description"
-  content="Strudel is a music live coding environment for the browser, porting the TidalCycles pattern language to JavaScript."
+  content="t8strudel is a music live coding environment for the Roland AIRA Compact T-8, forked from Strudel (a port of TidalCycles to JavaScript)."
 />
 <link rel="icon" href={`${baseNoTrailing}/favicon.ico`} />
 <link rel="apple-touch-icon" href={`${baseNoTrailing}/icons/apple-icon-180.png`} sizes="180x180" />
-<meta name="theme-color" content="#222222" />
+<meta name="theme-color" content="#161412" />
 
 <base href={BASE_URL} />
 
@@ -34,15 +34,15 @@ const baseNoTrailing = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL
 <style is:global>
   :root {
     color-scheme: dark;
-    --background: #222;
-    --lineBackground: #22222299;
-    --foreground: #fff;
-    --caret: #ffcc00;
-    --selection: rgba(128, 203, 196, 0.5);
-    --selectionMatch: #036dd626;
-    --lineHighlight: #00000050;
+    --background: #161412;
+    --lineBackground: #16141299;
+    --foreground: #f2e8d5;
+    --caret: #ff3b30;
+    --selection: rgba(217, 83, 30, 0.35);
+    --selectionMatch: #d9531e40;
+    --lineHighlight: #00000060;
     --gutterBackground: transparent;
-    --gutterForeground: #8a919966;
+    --gutterForeground: #8c7d6b99;
   }
 </style>
 {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}

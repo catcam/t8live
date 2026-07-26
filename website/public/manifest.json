@@ -1,6 +1,6 @@
 {
-  "short_name": "Strudel REPL",
-  "name": "Strudel REPL - Tidal Patterns in JavaScript",
+  "short_name": "t8strudel",
+  "name": "t8strudel - Live Coding Patterns for the Roland T-8",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,6 +10,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#161412",
+  "background_color": "#161412"
 }

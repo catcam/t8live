@@ -188,7 +188,7 @@ export function useReplContext() {
 
   const setDocumentTitle = (code) => {
     const meta = getMetadata(code);
-    document.title = (meta.title ? `${meta.title} - ` : '') + 'Strudel REPL';
+    document.title = (meta.title ? `${meta.title} - ` : '') + 't8strudel REPL';
   };
 
   const handleTogglePlay = async () => {
