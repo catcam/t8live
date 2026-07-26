@@ -11,6 +11,7 @@ import { PatternsTab } from './PatternsTab';
 import { Reference } from './Reference';
 import { SettingsTab } from './SettingsTab';
 import { SoundsTab } from './SoundsTab';
+import { T8Tab } from './T8Tab';
 import { WelcomeTab } from './WelcomeTab';
 
 const TAURI = typeof window !== 'undefined' && window.__TAURI__;
@@ -89,7 +90,7 @@ export function MainPanel({ context, isEmbedded = false, className }) {
             <LogoButton context={context} isEmbedded={isEmbedded} />
             {!isZen && (
               <div className="space-x-2 flex items-baseline">
-                <span className="hidden sm:block">strudel</span>
+                <span className="hidden sm:block">t8strudel</span>
                 <span className="text-sm font-medium hidden sm:block">REPL</span>
                 {!hot ? (
                   <span className="text-sm font-medium hidden sm:block">({ver})</span>
@@ -233,6 +234,7 @@ const tabNames = {
   welcome: 'intro',
   patterns: 'patterns',
   sounds: 'sounds',
+  t8: 't8',
   reference: 'reference',
   export: 'export',
   console: 'console',
@@ -269,6 +271,8 @@ function PanelContent({ context, tab }) {
       return <ConsoleTab />;
     case tabNames.sounds:
       return <SoundsTab />;
+    case tabNames.t8:
+      return <T8Tab />;
     case tabNames.reference:
       return <Reference />;
     case tabNames.export:
