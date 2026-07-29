@@ -1,7 +1,7 @@
 /*
 t8.mjs - Roland AIRA Compact T-8 helpers, built on top of @strudel/midi's
 existing Web MIDI output support (.midi(), .midichan(), .progNum(), .midicmd()).
-Copyright (C) 2026 t8strudel contributors - see <https://codeberg.org/catcam/t8strudel>
+Copyright (C) 2026 t8live contributors - see <https://codeberg.org/catcam/t8live>
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU Affero General Public License as published by the Free
 Software Foundation, either version 3 of the License, or (at your option) any

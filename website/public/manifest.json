@@ -1,6 +1,6 @@
 {
-  "short_name": "t8strudel",
-  "name": "t8strudel - Live Coding Patterns for the Roland T-8",
+  "short_name": "t8live",
+  "name": "t8live - Live Coding Patterns for the Roland T-8",
   "icons": [
     {
       "src": "favicon.ico",

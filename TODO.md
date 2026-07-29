@@ -1,13 +1,13 @@
-# TODO — t8strudel
+# TODO — t8live
 
 Full fork of [Strudel](https://codeberg.org/uzu/strudel) (AGPL-3.0), rebranded and extended for the
-Roland AIRA Compact T-8. Primary repo: `codeberg.org/catcam/t8strudel` (GitHub is a read-only
-mirror, per upstream's explicit request not to fork back to GitHub). Domain: t8strudel.fyi.
+Roland AIRA Compact T-8. Primary repo: `codeberg.org/catcam/t8live` (GitHub is a read-only
+mirror, per upstream's explicit request not to fork back to GitHub). Domain: t8live.fyi.
 
 ## Done so far
 
 - **Rebrand pass 1**: TR-808-styled default editor theme (`packages/codemirror/themes/t8-808.mjs`,
-  `t808Theme`), title/description/manifest/PWA/CNAME renamed to t8strudel across the site.
+  `t808Theme`), title/description/manifest/PWA/CNAME renamed to t8live across the site.
 - **`@strudel/t8` package** (`packages/t8/`): `t8drum`, `t8bass`, `t8select(bank, pattern)`,
   `t8clock`, `t8transport` — MIDI helpers built on `@strudel/midi`'s existing Web MIDI output.
   9-test vitest suite. **Confirmed working on real hardware**: heard `t8drum("bd ~ sd ~ bd bd sd
@@ -21,7 +21,7 @@ mirror, per upstream's explicit request not to fork back to GitHub). Domain: t8s
 ## Known workflow notes (don't re-derive from scratch)
 
 - **Dev server**: `sudo -u botuser bash -c 'export PATH=$HOME/.npm-global/bin:$PATH; cd
-  /home/botuser/t8strudel; nohup pnpm dev > /tmp/t8strudel_dev.log 2>&1 &'` — pnpm is installed to
+  /home/botuser/t8live; nohup pnpm dev > /tmp/t8live_dev.log 2>&1 &'` — pnpm is installed to
   a botuser-local prefix (`~/.npm-global`), NOT via corepack (corepack's `pnpm@latest` needs Node
   ≥22.13, this box has Node 20.20.2 — installed `pnpm@9` explicitly instead).
 - **Any file/dir created by a root-run tool inside this repo breaks `pnpm i`** (EACCES on
@@ -40,27 +40,27 @@ mirror, per upstream's explicit request not to fork back to GitHub). Domain: t8s
 
 Self-hosted on this VPS via nginx + Let's Encrypt (matches the same pattern as Nikša's other
 `.fyi`/personal domains already on this box). DNS (Porkbun) A record points at the VPS's public IP.
-nginx config: `/etc/nginx/sites-available/t8strudel.fyi` — port 80 redirects to https, real traffic
+nginx config: `/etc/nginx/sites-available/t8live.fyi` — port 80 redirects to https, real traffic
 terminates at `127.0.0.1:8443` (this box's standard pattern: `sslh` on the real port 443
 multiplexes SSH-over-443 vs TLS, forwarding TLS to nginx's 8443 vhost). Cert via
-`certbot certonly --nginx -d t8strudel.fyi -d www.t8strudel.fyi`, auto-renews.
+`certbot certonly --nginx -d t8live.fyi -d www.t8live.fyi`, auto-renews.
 
 **Deploy workflow for future changes — no CI yet, fully manual:**
 ```bash
-cd /home/botuser/t8strudel && sudo -u botuser bash -c 'export PATH=$HOME/.npm-global/bin:$PATH; pnpm build'
+cd /home/botuser/t8live && sudo -u botuser bash -c 'export PATH=$HOME/.npm-global/bin:$PATH; pnpm build'
 # nginx serves website/dist/ directly, no restart needed -- just rebuilding updates the live site
 ```
 
 ## Analytics (DONE, 2026-07-26)
 
 Self-hosted, privacy-friendly, no JS/cookies on the site itself: GoAccess parses nginx's own access
-log for t8strudel.fyi (dedicated log added, previously shared the box's global one) and generates a
+log for t8live.fyi (dedicated log added, previously shared the box's global one) and generates a
 static HTML report every 5 minutes via a systemd timer.
 
-- Log: `/var/log/nginx/t8strudel.fyi.access.log`
-- Report generator: `/usr/local/bin/t8strudel-goaccess-report.sh`, run by
-  `t8strudel-goaccess.timer`/`.service` (systemd, every 5 min, `systemctl list-timers` to check)
-- Served at **https://t8strudel.fyi/analytics/** (password-protected: `/etc/nginx/.htpasswd-t8strudel`,
+- Log: `/var/log/nginx/t8live.fyi.access.log`
+- Report generator: `/usr/local/bin/t8live-goaccess-report.sh`, run by
+  `t8live-goaccess.timer`/`.service` (systemd, every 5 min, `systemctl list-timers` to check)
+- Served at **https://t8live.fyi/analytics/** (password-protected: `/etc/nginx/.htpasswd-t8live`,
   user `niksa` — password given to Nikša directly, not written here)
 - No account/subdomain/DNS needed — reuses the existing domain + nginx setup entirely.
 
@@ -76,7 +76,7 @@ Ran an 8-angle automated review of the session's diff. Fixed (see git log for ex
 - `packages/midi/README.md` now documents the `autostart` option (was only mentioned in the
   top-level repo README, not the package a MIDI user would actually read).
 - **Confirmed working live**: `T8Tab.jsx` fetches plain `http://127.0.0.1:8737` from the HTTPS
-  `https://t8strudel.fyi` page. Was worried this might be blocked as mixed content, but Nikša
+  `https://t8live.fyi` page. Was worried this might be blocked as mixed content, but Nikša
   confirmed on the real production site that the T8 tab works correctly -- the CORS allowlist +
   `do_OPTIONS`/Private-Network-Access fix on the bridge side (`roland-t8` repo) was sufficient, no
   further HTTPS-for-the-bridge infra needed.

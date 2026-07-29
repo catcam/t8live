@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://codeberg.org/catcam/t8strudel.git"
+    "url": "git+https://codeberg.org/catcam/t8live.git"
   },
   "keywords": [
     "tidalcycles",
@@ -27,9 +27,9 @@
   ],
   "license": "AGPL-3.0-or-later",
   "bugs": {
-    "url": "https://codeberg.org/catcam/t8strudel/issues"
+    "url": "https://codeberg.org/catcam/t8live/issues"
   },
-  "homepage": "https://t8strudel.fyi",
+  "homepage": "https://t8live.fyi",
   "dependencies": {
     "@strudel/core": "workspace:*",
     "@strudel/mini": "workspace:*"

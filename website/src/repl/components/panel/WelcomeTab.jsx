@@ -9,7 +9,7 @@ export function WelcomeTab({ context }) {
     <div className="prose dark:prose-invert min-w-full py-4 font-sans px-4 text-sm" style={{ fontFamily }}>
       <h3>welcome</h3>
       <p>
-        You have found <span className="underline">t8strudel</span>, a live coding platform for the{' '}
+        You have found <span className="underline">t8live</span>, a live coding platform for the{' '}
         <span className="underline">Roland AIRA Compact T-8</span> beat machine, built on top of Strudel! It is free
         and open-source. To get started:
         <br />
@@ -53,14 +53,14 @@ t8transport("<start stop>/4").midi('T-8 MIDI IN')`}
       </pre>
       <p>
         Full reference, known bugs, and workflow notes live in the repo's{' '}
-        <a href="https://codeberg.org/catcam/t8strudel" target="_blank">
+        <a href="https://codeberg.org/catcam/t8live" target="_blank">
           README
         </a>
         .
       </p>
       <h3>about</h3>
       <p>
-        t8strudel is a fork of{' '}
+        t8live is a fork of{' '}
         <a href="https://codeberg.org/uzu/strudel" target="_blank">
           strudel
         </a>
@@ -68,13 +68,13 @@ t8transport("<start stop>/4").midi('T-8 MIDI IN')`}
         <a href="https://tidalcycles.org/" target="_blank">
           tidalcycles
         </a>
-        , which is a popular live coding language for music, written in Haskell. t8strudel is free/open source
+        , which is a popular live coding language for music, written in Haskell. t8live is free/open source
         software: you can redistribute and/or modify it under the terms of the{' '}
-        <a href="https://codeberg.org/catcam/t8strudel/src/branch/main/LICENSE" target="_blank">
+        <a href="https://codeberg.org/catcam/t8live/src/branch/main/LICENSE" target="_blank">
           GNU Affero General Public License
         </a>
         . You can find the source code at{' '}
-        <a href="https://codeberg.org/catcam/t8strudel" target="_blank">
+        <a href="https://codeberg.org/catcam/t8live" target="_blank">
           codeberg
         </a>
         . You can also find <a href="https://github.com/felixroos/dough-samples/blob/main/README.md">licensing info</a>{' '}
@@ -82,11 +82,11 @@ t8transport("<start stop>/4").midi('T-8 MIDI IN')`}
         <a href="https://opencollective.com/tidalcycles" target="_blank">
           support the strudel project
         </a>{' '}
-        to ensure ongoing development of the engine t8strudel is built on 💖
+        to ensure ongoing development of the engine t8live is built on 💖
       </p>
       <h3>credits</h3>
       <p>
-        t8strudel is built by <span className="underline">Nikša Barlović</span> with{' '}
+        t8live is built by <span className="underline">Nikša Barlović</span> with{' '}
         <span className="underline">Claude</span> (Anthropic), on top of the work of the{' '}
         <a href="https://codeberg.org/uzu/strudel/activity/contributors" target="_blank">
           strudel and tidalcycles contributors

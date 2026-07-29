@@ -1,12 +1,12 @@
-# t8strudel — Live Coding for the Roland AIRA Compact T-8
+# t8live — Live Coding for the Roland AIRA Compact T-8
 **Version 0.1.0** · Nikša Barlović · 2026 · Fork of Strudel (AGPL-3.0-or-later)
 
 ---
 
 ## AI READING INSTRUCTION
 
-This document is written in [HADS](https://codeberg.org/catcam/t8strudel) format. Read `[SPEC]` and
-`[BUG]` blocks for authoritative facts about programming t8strudel and running/developing this
+This document is written in [HADS](https://codeberg.org/catcam/t8live) format. Read `[SPEC]` and
+`[BUG]` blocks for authoritative facts about programming t8live and running/developing this
 repo. Read `[NOTE]` blocks only if additional context is needed. `[?]` blocks are unverified —
 treat with lower confidence and confirm before relying on them.
 
@@ -15,17 +15,17 @@ treat with lower confidence and confirm before relying on them.
 ## 1. What is this
 
 **[SPEC]**
-- t8strudel is a full fork of [Strudel](https://codeberg.org/uzu/strudel), a browser-based
+- t8live is a full fork of [Strudel](https://codeberg.org/uzu/strudel), a browser-based
   live-coding pattern language (a JS port of TidalCycles)
 - Adds first-class support for the Roland AIRA Compact T-8 beat machine over Web MIDI
-- Primary repo: `codeberg.org/catcam/t8strudel` — GitHub is a read-only mirror (see `[NOTE]` below)
+- Primary repo: `codeberg.org/catcam/t8live` — GitHub is a read-only mirror (see `[NOTE]` below)
 - License: AGPL-3.0-or-later, same as upstream Strudel
-- Domain: t8strudel.fyi (hosting target not yet decided)
+- Domain: t8live.fyi (hosting target not yet decided)
 
 **[NOTE]**
 Strudel's own maintainers ask contributors not to fork the project back to GitHub ("we have moved
 from Microsoft's Github platform to Codeberg for ethical reasons"). This project respects that:
-`codeberg.org/catcam/t8strudel` is the canonical repo, `github.com/catcam/t8strudel` exists only as
+`codeberg.org/catcam/t8live` is the canonical repo, `github.com/catcam/t8live` exists only as
 a convenience mirror. All credit for the underlying pattern engine, mini-notation language, and
 audio engine belongs to the Strudel/TidalCycles project and contributors.
 
@@ -135,8 +135,8 @@ assuming a code change didn't take effect. Kill all of them, then start exactly 
 ## 5. Workflow notes for this repo
 
 **[SPEC]**
-- Primary remote: `origin` → `codeberg.org/catcam/t8strudel`. Push here first, always.
-- Mirror remote: `github-mirror` → `github.com/catcam/t8strudel`. Convenience only — push after
+- Primary remote: `origin` → `codeberg.org/catcam/t8live`. Push here first, always.
+- Mirror remote: `github-mirror` → `github.com/catcam/t8live`. Convenience only — push after
   `origin`, never instead of it.
 - `upstream` remote → `codeberg.org/uzu/strudel` (the original project, for pulling updates).
 - Full outstanding-work tracker: see `TODO.md` in this repo — not duplicated here.

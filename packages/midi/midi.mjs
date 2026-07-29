@@ -320,7 +320,7 @@ Pattern.prototype.midi = function (midiport, options = {}) {
     gain: 1, // Default gain
     midimap: 'default', // Default MIDI map
     midiport: midiport, // Store the port in the config
-    // t8strudel change: default off (see the unconditional sendStart() below).
+    // t8live change: default off (see the unconditional sendStart() below).
     // Devices in an "auto sync" mode (follow external clock if present, else
     // free-run on their own internal clock/pattern -- confirmed on the T-8)
     // will start playing back whatever they have loaded internally the

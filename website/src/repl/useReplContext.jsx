@@ -197,7 +197,7 @@ stack(
 
   const setDocumentTitle = (code) => {
     const meta = getMetadata(code);
-    document.title = (meta.title ? `${meta.title} - ` : '') + 't8strudel REPL';
+    document.title = (meta.title ? `${meta.title} - ` : '') + 't8live REPL';
   };
 
   const handleTogglePlay = async () => {
