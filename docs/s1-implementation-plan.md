@@ -506,11 +506,96 @@ specific CCs (§5's `s1polyMode` row, §4's SHIFT-combo caveat), not the basic C
    shouldn't be silent for one single note the way CC80=16 was) don't cleanly separate into Mono vs
    Poly by the same logic. `s1polyMode` stays a raw 0-1 passthrough, not a named enum — this
    narrows the story but doesn't complete a 4-way numeric mapping.
-4. **SHIFT-combo CC behavior (§4) — tested against real hardware 2026-07-31, mixed result, honestly
-   reported.** Corrected count first: it's 31 SHIFT-combo CCs, not "~15" (§4's correction above).
-   Tested 3 CCs directly via `python-rtmidi` + the S-1 audio bridge's `/capture` endpoint + offline
-   spectral analysis (scripts not kept in-repo, this was exploratory hardware probing, not
-   product code — see the session's own working notes for exact methodology if reproducing):
+
+   **[SPEC] CC80=32 Unison hypothesis CONFIRMED (2026-08-01), decisive scaling test.** Ran the
+   disambiguating test this open question called for: play the same CC80=32 single-note test at two
+   notes a couple octaves apart and compare the amplitude-envelope beat frequency. Genuine unison
+   detuning (a fixed cents offset between two oscillators) should show a beat Hz that scales roughly
+   proportionally with the note's fundamental (cents are multiplicative/logarithmic); a fixed-rate
+   LFO/tremolo effect should hold the beat Hz constant regardless of note pitch. Tested c4 (261.6 Hz)
+   and c6 (1046.5 Hz, exactly 2 octaves up — substituted for the originally-suggested c3/c5 because
+   c3 turned out to be silent on the test unit's current patch for a reason unrelated to CC80, see
+   the note below) using a Hilbert-envelope FFT to extract the beat frequency from each capture's
+   amplitude envelope. **Result: 2.15 Hz beat at c4, 8.38 Hz beat at c6 — a 3.90x ratio against a
+   theoretical 4.00x pitch ratio, ~2.5% off an exact match.** Clean, decisive: the beat frequency
+   scales with note pitch, confirming genuine unison oscillator detuning and ruling out a fixed-rate
+   tremolo/LFO. (The absolute beat-Hz values don't match the original c3 measurement from 2026-07-31,
+   ~10.6 Hz — not a contradiction, session-to-session patch state can plausibly differ in exact
+   detune amount; what matters for Mono-vs-Unison is the *within-test* scaling ratio, which came out
+   clean.) `s1polyMode`'s JSDoc now states CC80=32 as confirmed Unison rather than "suggestive."
+
+   **[NOTE] Unrelated discovery made while chasing this (2026-08-01):** note 48 (c3) was found
+   completely silent on the test unit's current patch, regardless of any CC state tried (bare note,
+   various filter/envelope/poly-mode settings tried) — while note 60 (c4) and note 84 (c6) both
+   played normally. Almost certainly a patch-specific artifact (osc range, a filter setting, or
+   something else specific to whichever patch slot was active) rather than anything about MIDI note
+   handling in general — nothing in the chart or manual suggests note 48 is special, and it cost real
+   debugging time before being isolated as unrelated to the CCs under test. Not investigated further
+   (out of scope for this session), but worth knowing for future tests: if a low note is surprisingly
+   silent, check the current patch before assuming the CC under test is broken.
+4. **SHIFT-combo CC behavior (§4) — full battery run against real hardware 2026-08-01, all 31
+   SHIFT-combo CCs now individually tested (up from 3 as of 2026-07-31), honestly reported.**
+   Corrected count first: it's 31 SHIFT-combo CCs, not "~15" (§4's correction above). The 2026-07-31
+   pass tested 3 (74 as a sanity control, 15, 5) via `python-rtmidi` + the S-1 audio bridge's
+   `/capture` endpoint + offline spectral analysis — see that pass's results kept verbatim below.
+   The 2026-08-01 pass covered the remaining 29 CCs (5 and 15 already had individual results; CC26
+   needed a dedicated cross-note test since it can't show anything on a single held note) using the
+   same tools, one shared "audible" baseline patch (open-ish filter, some resonance, sub-osc/noise/
+   LFO all routed nonzero) set once rather than per-CC, baseline CC value ~25 vs test value ~115 on a
+   single held note, comparing spectral centroid mean/std, RMS, dominant peak frequency, and
+   magnitude-spectrum correlation. Scripts kept at `/tmp/s1_shift_batch.py`, `/tmp/s1_cc26_test.py`,
+   `/tmp/s1_chordshift_test3.py`, `/tmp/s1_cc80_scaling_test.py` on the Mac (exploratory hardware
+   probing, not product code, same convention as the 2026-07-31 pass).
+
+   **Result summary (29 CCs, 2026-08-01 pass):**
+   - **Confirmed working** (clear, multi-metric change well above the noise floor observed among the
+     negative results): fineTune (76, spectral correlation crashed to 0.54, a 215 Hz peak-frequency
+     shift), transposeSw (77, correlation crashed to -0.16, a 2196 Hz peak shift — transposing the
+     played note drastically changes its spectrum, as expected), filterBendSens (27, tested with an
+     active pitch-bend message since it's inert without one — centroid shifted 653→848 Hz, 30%
+     relative change).
+   - **Likely working** (moderate confidence — effect size clearly above the ~6% noise-floor ceiling
+     seen among confirmed negatives, but only tested once, not to CC15's two-configuration bar):
+     oscChopOvertone (103, 16.3% centroid shift, correlation dropped to 0.98).
+   - **No effect detected** (single-pass test came back flat — weaker evidence of brokenness than
+     CC15's confirmed-not-working status, since each was only tested once and several of these
+     plausibly need a different test shape entirely, e.g. portamentoMode/envTriggerMode would only
+     show an effect across a note-to-note transition, not a single held note; reverbTime/delayTime's
+     effect may need a longer decay tail than the ~2.6s capture window used):
+     oscPwmSource (16), lfoModulationDepth (17), oscBendSens (18, pitch-bend tested), oscSubOctType
+     (22), ampEnvelopeModeSw (28), envTriggerMode (29), portamentoMode (31), noiseMode (78), lfoMode
+     (79), chordVoice3Sw (82), chordVoice4Sw (83), chordVoice3KeyShift (86), chordVoice4KeyShift (87),
+     reverbTime (89), delayTime (90), chorus (93), oscDrawMultiply (102), oscChopComb (104),
+     lfoKeyTrigger (105), lfoSync (106), oscDrawSw (107).
+   - **Inconclusive** (ambiguous signal or methodology-limited, don't treat either direction as
+     established): filterKeyboardFollow (26) — needed a dedicated two-note test (c4 vs c6 at
+     tracking=0 vs 127) since keyboard tracking can't show on a single held note; the result was
+     dominated by broadband low-frequency content unrelated to the note's own pitch, giving a
+     contradictory/unreliable gap-ratio reading rather than a clean answer. chordVoice2Sw (81) —
+     borderline centroid shift (9.5%, just above the noise floor) but near-perfect spectral-shape
+     correlation (0.9996), which is the *opposite* of what a genuinely added new pitch should look
+     like (compare transposeSw's correlation collapse to -0.16 when the pitch genuinely changes) —
+     read as weak/inconclusive rather than confirmed. A dedicated follow-up attempted to calibrate
+     chordVoice2KeyShift's (CC85) semitone mapping directly: fixed root note, chordVoice2Sw on, CC80
+     pinned to its known-audible single-note value (32), sweeping CC85 through 0/0.25/0.5/0.75/1.0
+     while looking for a second pitch via both raw peak-picking and a differential FFT against a
+     chord-off reference capture (to cancel out a broadband low-frequency noise floor that dominated
+     raw peak-picking). Neither method found a clean, consistently-tracking second-voice fundamental
+     across the five values -- consistent with the CC81 borderline read above, it's unclear whether
+     the chord-voice mechanism was reliably audible under any tested configuration (possibly needs a
+     genuine multi-note chord as input per the manual's own "Chord" mode definition, rather than a
+     single re-harmonized note -- see item 3 above). Per this project's rule against inventing a
+     conversion formula from noisy data, `s1chord`'s key-shift args stay raw 0-1, undocumented in
+     semitones; this is now in `s1chord`'s own JSDoc too.
+   - CC80 (polyMode) itself was included in this battery for consistency (no clear effect at the
+     generic 25-vs-115 sweep) but is separately and much more thoroughly characterized in item 3
+     above — the generic single-pass result here shouldn't be read as the last word on it.
+
+   Combined with the 2026-07-31 pass, per-CC confidence now lives in `s1cc`'s own JSDoc in
+   `packages/s1/s1.mjs` (kept in sync with this summary) rather than only here, since that's where a
+   pattern author would actually see it before calling `s1cc('someShiftComboParam', ...)`.
+
+   **Prior pass (2026-07-31), 3 CCs, kept verbatim for the record:**
    - **Sanity baseline (non-SHIFT control), CC 74 FILTER FREQUENCY:** cutoff 0 vs 127 on a held
      note produced a huge, unambiguous spectral-centroid shift (590 Hz → 2062 Hz sustain mean) and
      RMS change (0.003 → 0.058) — confirms the test methodology itself reliably detects a CC that's
