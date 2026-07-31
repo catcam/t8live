@@ -136,6 +136,23 @@ export const s1note = register('s1note', (pat) => {
  * a wrong CC number reaching real hardware can silently detune or mute the
  * instrument rather than just skip a hit -- a worse failure mode than
  * s1note's per-event errors would be for this.
+ *
+ * All 54 CCs in S1_CC are officially "Recognized" per the S-1's own MIDI
+ * chart (docs/s1-implementation-plan.md §1.3, resolved against the PDF
+ * manual 2026-07-31), so in principle every name here should do something.
+ * In practice, 31 of them are only reachable on the physical panel via a
+ * [SHIFT]+knob/pad gesture, and at least one of those -- oscPulseWidth (CC
+ * 15, PWM depth) -- is HARDWARE-CONFIRMED to have NO measurable audible
+ * effect when sent as a plain CC over MIDI (tested 2026-07-31 via the S-1
+ * audio bridge + spectral analysis, in two independent configurations,
+ * including one with the LFO explicitly routed toward the oscillator to
+ * rule out an unrouted-modulation confound -- see plan doc §9 item 4 for
+ * the full writeup). A community Pd project's author reported the same
+ * kind of difficulty with SHIFT-combo CCs generally. Treat any other
+ * SHIFT-combo name in S1_CC (see plan doc §4's list) with the same caution
+ * until it's individually verified against real hardware -- the chart
+ * lists them as ordinary CC numbers, but that's not proof they behave like
+ * one.
  * @name s1cc
  * @tags external_io, midi, s1
  * @example
@@ -186,10 +203,23 @@ export function s1cc(nameOrNumber, valuePattern) {
  * **CC80=0 specifically produced NO audible output at all, twice,
  * reproducibly, for both chord and single-note tests** -- a real usable
  * finding: don't default anything to exactly 0 without expecting silence.
- * This still deliberately does not offer named mode arguments given the
- * above -- sweep/set the raw 0-1 range yourself, or use
- * s1cc('polyMode', value) directly, which this just aliases for
- * discoverability.
+ * **Manual cross-reference (2026-07-31, docs/s1-implementation-plan.md §9
+ * item 3):** the S-1 owner's manual body names and defines the four POLY
+ * modes directly -- Mono ("plays single tones"), Unison ("stacks multiple
+ * tones to play a layered note"), Poly (up to 4 simultaneous voices as
+ * literally played), Chord ("plays voices 2-4 ... according to the
+ * parameter settings", i.e. auto-generated extra voices). This text is a
+ * strong match for the spectral data above: the "rich, extra pitches not
+ * in the sent chord" result lines up with Chord's own definition, and the
+ * "one clean peak + amplitude beat" result for a single note at CC80=32
+ * lines up with Unison's definition (stacked near-identical pitches beat
+ * against each other). That narrows the story but still does NOT establish
+ * the exact CC-value boundaries between all four modes (the manual gives
+ * names, not CC80 numbers), and doesn't explain why CC80=16 was silent for
+ * a single note the way a plain Mono mode shouldn't be. This still
+ * deliberately does not offer named mode arguments given the above --
+ * sweep/set the raw 0-1 range yourself, or use s1cc('polyMode', value)
+ * directly, which this just aliases for discoverability.
  * @name s1polyMode
  * @tags external_io, midi, s1
  * @example
@@ -245,6 +275,15 @@ export function s1chord({
  * .midi(S1_PORT) to actually send. Throws immediately (not inside a pattern
  * query) if out of range, since a silently wrong patch number would select
  * a real but unintended slot on the device rather than doing nothing.
+ *
+ * If this appears to do nothing on a real unit, check two S-1 menu
+ * settings before assuming a bug (found reading the manual body,
+ * docs/s1-implementation-plan.md §9 item 5): "rxPc" (Rx Program Change)
+ * must be On for incoming Program Change to actually switch patches, and
+ * "Pc.Ch" (Program Change Channel) is independently configurable 1-16 and
+ * may have been changed away from the documented default of 16 -- neither
+ * is queryable over MIDI (no SysEx, §1.5), so a silent no-op is the only
+ * symptom you'd see.
  * @name s1select
  * @tags external_io, midi, s1
  * @example
@@ -263,6 +302,14 @@ export function s1select(patch) {
  * S-1 starts following as soon as Clock+Start arrive. ticksPerCycle
  * defaults to 48 (2 quarter notes per cycle at 24 PPQN); tune it to match
  * your cps/tempo setup.
+ *
+ * Nuance found reading the manual body (docs/s1-implementation-plan.md §3's
+ * addendum): the S-1 DOES have a "SYnC" (MIDI Clock Sync) menu setting --
+ * AUtO / Int / MIDI / USB -- and the hardware test above worked because the
+ * unit was at (or defaults to) AUtO. If this doesn't drive a real S-1's
+ * sequencer, check that menu isn't set to "Int" (internal clock only,
+ * ignores everything sent here) before assuming a code bug -- there's no
+ * way to query it over MIDI (no SysEx, §1.5).
  * @name s1clock
  * @tags external_io, midi, s1
  * @example
@@ -277,7 +324,10 @@ export function s1clock(ticksPerCycle = 48) {
  * startStopPattern follows midicmd's mini-notation, e.g. "<start stop>/2"
  * toggles once every 2 cycles. Confirmed against real hardware (2026-07-31):
  * the S-1's sequencer/arpeggiator responded to Start within ~0.6s with no
- * special device-side setup, unlike the T-8's SYnC=AUTO requirement.
+ * special device-side setup, unlike the T-8's SYnC=AUTO requirement. See
+ * s1clock's JSDoc above for a real "if it doesn't work, check this menu"
+ * caveat found reading the manual body (the S-1's own SYnC setting, not a
+ * Strudel-side issue) before assuming a bug here.
  *
  * Note: if you pass a plain string in quotes (as in the example below), the
  * strudel transpiler already mini-notation-parses it into a Pattern before
