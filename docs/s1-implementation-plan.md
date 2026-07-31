@@ -94,15 +94,36 @@ This is the real chart, not a paraphrase — every number below was read out of 
 | 106 | LFO SYNC (added in fw 1.02) |
 | 107 | OSC DRAW SW |
 
-**[NOTE]** The chart's per-CC Transmitted/Recognized flags got mangled by HTML-table→text
-extraction (rowspan/colspan structure was lost when scraping) — I could not cleanly reconstruct
-which of these 51 CCs the S-1 *transmits* vs only *recognizes*. What's clear from the raw chart is
-that the block is overwhelmingly `o` (supported) on the recognized side. **For a first
-implementation, treat every CC above as an outbound (host→S-1) control** — that's the direction
-t8live/Strudel cares about anyway (sending patterns out, not reading the S-1's own knob turns back
-in), and the "Recognized" column is what governs that. Re-verify against a real S-1 with a MIDI
-monitor before relying on the transmit direction for anything (e.g. building a "read current patch
-state" feature).
+**[SPEC] RESOLVED (2026-07-31):** the HTML scrape's mangled Transmitted/Recognized columns are now
+readable from the PDF version of the manual (`assets.brack.ch/documents2/7/0/7/282129707/282129707.pdf`,
+page 73 of the PDF, "MIDI implementation chart" — `pdfplumber`'s plain `extract_text()` preserved
+the table's row structure cleanly, unlike the HTML→text scrape). The chart states these as *ranges*
+of CC numbers sharing one flag pair, transcribed verbatim below (`o`=supported, `x`=not supported):
+
+| CC range | Transmitted | Recognized |
+|---|---|---|
+| 1 | x | o |
+| 3 | o | o |
+| 5 | o | o |
+| 10 | x | o |
+| 11 | x | o |
+| 12–31 | o | o |
+| 64, 65 | x | o |
+| 71–76 | o | o |
+| 77 | x | o |
+| 78–83 | o | o |
+| 85–87 | o | o |
+| 89–93 | o | o |
+| 102–107 | o | o |
+
+So: **every CC in §1.3's table is Recognized (`o`)** — confirms the "safe as an outbound control"
+assumption below was correct even before this was resolved. On the Transmitted side, only CC 1
+(Modulation Wheel), CC 10 (Pan), CC 11 (Expression Pedal), CC 64/65 (Damper/Portamento on-off), and
+CC 77 (Transpose SW) are *not* transmitted by the S-1 itself; every other CC in the table (3, 5,
+12–31, 71–76, 78–83, 85–87, 89–93, 102–107) is bidirectional (`o`/`o`) — meaning turning those knobs
+on the physical panel *does* send CC out over MIDI, which matters if anyone later builds a "read
+current patch state" or MIDI-learn feature (not in scope for v1 per §5, but no longer blocked by
+missing data if someone picks it up later).
 
 ### 1.4 Program Change
 - Transmitted/Recognized: `o` / `o`, true number, range 0–63 (S-1 has 64 pattern/patch slots
@@ -121,10 +142,19 @@ state" feature).
   generic MIDI device; don't build a resume-from-pause feature expecting Continue to work.
 
 ### 1.7 Aux messages
-- All Sound Off: recognized only (`x`/`o`).
-- All Notes Off: recognized only (`x`/`o`).
+
+**[SPEC] Corrected 2026-07-31 against the PDF chart** (the original HTML-scrape pass got two of
+these wrong — see §1.3's resolution note above for the source):
+- **All Sound Off: transmitted AND recognized (`o`/`o`)**, not recognized-only as originally
+  written — the chart's remarks column qualifies this with "Transmitted: MIDI OFFLINE" (the S-1
+  only transmits it itself when going offline, but it recognizes an incoming one at any time).
+- All Notes Off: recognized only (`x`/`o`) — this one was correct in the original pass.
+- **Reset All Controllers: recognized only (`x`/`o`)**, not "not supported" as originally written —
+  same shape as All Notes Off, just previously miscategorized into the "not supported" bucket below
+  instead of getting its own real `x`/`o` line.
 - Active Sensing: transmitted & recognized (`o`/`o`).
-- Reset All Controllers, Omni On/Off, Mono/Poly mode switches, System Reset: not supported.
+- Omni On/Off, Mono/Poly mode switches, System Reset: genuinely not supported (`x`/`x`) — this part
+  of the original pass was correct.
 
 ---
 
@@ -178,6 +208,24 @@ menu toggle, no equivalent of the T-8's `SYnC=AUTO` requirement.** Test script s
 workaround in `packages/midi/midi.mjs` must NOT be applied to the S-1 path. An S-1 owner sending a
 bare one-shot Start with a live clock stream will work correctly out of the box.
 
+**[SPEC] Nuance found reading the manual body (2026-07-31, §9 item 5's follow-up):** there IS a
+documented menu setting on the S-1 that's structurally the same *kind* of thing as the T-8's
+`SYnC=AUTO` requirement — it's just not the blocker here that it is on the T-8. Manual body, "Using
+the menus" section: a `SYnC` item (labeled "MIDI Clock Sync" in the manual's parenthetical) with
+four values — `AUtO` ("Inputted clocks are accepted"), `Int` (unit ignores external clock, runs off
+its own internal clock), `NiDi`/MIDI ("Only MIDI input is accepted"), `USb` ("Only USB MIDI input is
+accepted"). `AUtO` is listed first, matching this manual's usual convention for the factory-default
+option (not explicitly labeled "default" in the extracted text, but consistent with the hardware
+test above working with zero manual configuration). **This means the hardware-confirmed result
+above holds specifically because the test unit's `SYnC` setting happened to already be at (or
+default to) `AUtO`** — it is not that no such setting exists. If a user has manually changed their
+own S-1's `SYnC` menu value to `Int` (internal clock only), `s1clock()`/`s1transport()` would have
+no effect on that unit regardless of anything Strudel sends, since `Int` explicitly ignores external
+clock. There's no MIDI-readable way to query this setting (§1.5 confirms no SysEx), so
+`s1clock`/`s1transport`'s JSDoc now names this as a real "if it doesn't work, check this menu
+setting" troubleshooting step rather than treating the resolved-`o`/`o`-Clock/Start/Stop finding as
+the complete story.
+
 ---
 
 ## 4. Existing prior art
@@ -197,6 +245,19 @@ bare one-shot Start with a live clock stream will work correctly out of the box.
   chart's plain CC-number listing is the complete story for every parameter just because it's the
   official chart.
 - No existing JS/Strudel/TidalCycles-specific S-1 integration was found.
+
+**[SPEC] Correction (2026-07-31), full SHIFT-combo count from the PDF's Control Change list
+remarks column** (`assets.brack.ch/documents2/7/0/7/282129707/282129707.pdf`, PDF page 74): the "a
+handful" / "~15" estimate used earlier in this doc undercounted by about half. Of the full CC table
+(§1.3), **31 of the ~54 listed CCs are SHIFT-combo** (panel remark contains "[SHIFT] button" or
+"[SHIFT] +"): CC 5, 15, 16, 17, 18, 22, 26, 27, 28, 29, 31, 76, 77, 78, 79, 80, 81, 82, 83, 85, 86,
+87, 89, 90, 93, 102, 103, 104, 105, 106, 107. The rest (1, 3, 10, 11, 12, 13, 14, 19, 20, 21, 23, 24,
+25, 30, 64, 65, 71, 72, 73, 74, 75, 91, 92) map to an ordinary always-visible knob/pedal with no
+SHIFT gesture involved. Practically: the SHIFT-combo group isn't a small edge case, it's the
+majority of the "interesting" sound-design parameters (osc/filter/env/LFO modulation depths, poly
+mode, chord voices, delay/reverb time) — which raises the stakes on §9 item 4's hardware test below,
+since a real quirk there would affect most of what makes `s1cc` useful beyond the handful of
+always-visible knobs.
 
 ---
 
@@ -410,52 +471,105 @@ specific CCs (§5's `s1polyMode` row, §4's SHIFT-combo caveat), not the basic C
 ## 9. Open questions (honest gaps — do not guess past these)
 
 **[?]**
-1. **SYnC-mode equivalence (§3):** does the S-1 need a T-8-style `autostart: false` workaround, or
-   does it just follow incoming Clock/Start/Stop unconditionally? Not resolved by this research
-   pass. Unblocked by: 10 minutes with a real S-1 and the existing `t8clock()`/`t8transport()`
-   helpers (they're generic enough to test against any device already), or a careful read of the
-   full S-1 owner's manual body (not just the MIDI chart page) for a menu setting this pass didn't
-   search for.
-2. **Per-CC Transmitted vs Recognized direction (§1.3):** the official chart's transmit/recognize
-   columns for the 51-entry CC list didn't survive HTML table extraction cleanly. Unblocked by:
-   re-fetching the chart with a tool that preserves table structure (e.g. render the page and read
-   the table visually, or find the PDF version of the manual — a PDF link is listed at
-   `assets.brack.ch/documents2/7/0/7/282129707/282129707.pdf`, not yet opened during this pass) —
-   or just not building any inbound (S-1→host) CC feature until it doesn't matter.
-3. **CC 80 (POLY MODE) exact value semantics — PARTIALLY resolved (2026-07-31):** tested via the
-   S-1 audio bridge (`mac_bridge/s1_audio_bridge.py`'s `/capture` endpoint) + offline FFT analysis
-   of a 4-note chord (c3/eb3/g3/bb3) sent at CC80 = 0, 16, 32, 40, 48, 56, 64, 96, 127. Confirmed,
-   reproduced twice: **CC80 ∈ {0, 16, 32} → sparse spectrum** (one fundamental + harmonics, single-
-   voice-like); **CC80 ∈ {40, 48, 56, 64, 96, 127} → rich spectrum** (multiple simultaneous
-   fundamentals, including pitches not present in the sent chord — consistent with chord-voice
-   auto-generation, not simple 4-voice reproduction of exactly what was sent). **CC80=0 specifically
-   produced no audible output at all, both times** — a real, usable gotcha (see `s1.mjs`'s
-   `s1polyMode` docstring). **Still NOT resolved:** which low value is Mono vs Unison (may be
-   spectrally indistinguishable by pitch-counting — Unison thickens/detunes one note rather than
-   changing how many pitches sound) and which high-value region is Poly vs Chord. Don't invent a
-   4-way name mapping from this data. `s1polyMode` stays a raw 0-1 passthrough, not a named enum,
-   until someone resolves the remaining ambiguity (likely needs either the full manual body, or a
-   test that distinguishes detuning/thickness from auto-generated extra pitches, not just FFT peak
-   counting).
-   **Follow-up same day:** tested CC80=16 vs 32 with a single sustained note (not a chord),
-   specifically looking for unison-style detuning (a split/doubled spectral peak, or amplitude
-   beating). CC80=16 was silent for a single note (reproduced twice) despite being audible for a
-   chord — genuine single-note-vs-chord behavior difference, not a test bug. CC80=32 showed one
-   clean spectral peak (no splitting) plus a strong ~10.6 Hz amplitude-envelope beat — suggestive
-   of unison detuning, but inconclusive (a patch-level tremolo/LFO would look identical by this
-   method). Still unresolved, now with more texture than a flat unknown.
-4. **SHIFT-combo CC behavior (§4):** whether any of the ~15 CCs whose panel description includes a
-   SHIFT gesture behave identically to a plain knob CC when sent over MIDI, or have some quirk (the
-   Pd community project's author couldn't fully resolve this either). Unblocked by: hardware testing
-   each flagged CC individually, or contacting Roland support directly.
-5. **Full owner's manual body was not read in this pass** — only the MIDI implementation chart page
-   and the officially-published control-change list on that same page. The manual's main body
-   (panel descriptions, "Connecting to a computer or mobile device" section, D-MOTION tilt control,
-   etc. — visible in the page's own table of contents, e.g. at
-   `https://www.manualslib.com/manual/3069202/Roland-S-1.html`) may contain additional detail
-   relevant to questions 1 and 3 above. Recommend reading it before finalizing `s1polyMode` and the
-   transport helpers, not before starting `s1note`/`s1cc`/`s1select` (those are already
-   fully-grounded in the verified chart).
+1. **SYnC-mode equivalence (§3) — RESOLVED, with a nuance added 2026-07-31.** Hardware test showed
+   the S-1 follows Clock/Start/Stop with no workaround needed (§3). Reading the manual body added
+   nuance, not a reversal: a `SYnC` menu setting *does* exist (`AUtO`/`Int`/MIDI/USB), and the
+   hardware test worked because the unit's setting was at (or defaulted to) `AUtO` — see §3's
+   addendum for the full writeup and the resulting "if it doesn't work, check this menu" caveat now
+   in `s1clock`/`s1transport`'s JSDoc.
+2. **Per-CC Transmitted vs Recognized direction (§1.3) — RESOLVED (2026-07-31).** The PDF version of
+   the manual (`assets.brack.ch/documents2/7/0/7/282129707/282129707.pdf`) extracts cleanly with
+   `pdfplumber` — no HTML rowspan/colspan mangling. Full table now in §1.3 above, plus two
+   corrections to §1.7's Aux Message flags that the original HTML-scrape pass got wrong (All Sound
+   Off is actually `o`/`o` not `x`/`o`; Reset All Controllers is `x`/`o` not unsupported). Every CC
+   in the §1.3 table is Recognized (`o`); only 6 of them (1, 10, 11, 64, 65, 77) aren't also
+   Transmitted by the unit itself.
+3. **CC 80 (POLY MODE) exact value semantics — still not fully resolved, but with a manual
+   cross-reference added 2026-07-31 that meaningfully narrows it.** The manual body's "Setting the
+   sound triggering mode (POLY)" section (and its near-duplicate in the menu reference) names and
+   defines the four modes directly: **Nono (Mono)** — "Plays single tones"; **Uni (Unison)** —
+   "Stacks multiple tones to play a layered note"; **PoLy (Poly)** — "up to four voices" played
+   simultaneously as literally input; **Chd (Chord)** — "Plays voices 2–4 at the same time for each
+   note that you play, according to the parameter settings" (i.e. auto-generates extra voices from
+   CC 81-87's chord-voice switches/key-shifts, not from what you literally played). Cross-checking
+   against the FFT findings below §9 item 3's original text: the **"rich spectrum, pitches not in
+   the sent chord" result for CC80 ∈ {40...127} now has a strong textual match — that's exactly what
+   "Chord" mode's definition describes**, elevating that identification from "consistent with" to
+   "matches the manual's own definition." The **"one clean peak + ~10.6 Hz amplitude beat" result
+   for CC80=32 on a single note is *also* a strong textual match for "Unison"** — "stacks multiple
+   tones to play a layered note" for a single key-press is precisely the setup that produces
+   near-identical-pitch beating (two or more detuned copies of the same note). What's still
+   genuinely unresolved: exact numeric CC-value boundaries between the four modes (the manual gives
+   names, not the CC80 value that switches from one to the next), and specifically why CC80=0 and
+   CC80=16 (the other two values in the "sparse" group, one of which should presumably be Poly on a
+   4-note chord and neither of which was Mono-consistent — a genuine single-voice **Mono** mode
+   shouldn't be silent for one single note the way CC80=16 was) don't cleanly separate into Mono vs
+   Poly by the same logic. `s1polyMode` stays a raw 0-1 passthrough, not a named enum — this
+   narrows the story but doesn't complete a 4-way numeric mapping.
+4. **SHIFT-combo CC behavior (§4) — tested against real hardware 2026-07-31, mixed result, honestly
+   reported.** Corrected count first: it's 31 SHIFT-combo CCs, not "~15" (§4's correction above).
+   Tested 3 CCs directly via `python-rtmidi` + the S-1 audio bridge's `/capture` endpoint + offline
+   spectral analysis (scripts not kept in-repo, this was exploratory hardware probing, not
+   product code — see the session's own working notes for exact methodology if reproducing):
+   - **Sanity baseline (non-SHIFT control), CC 74 FILTER FREQUENCY:** cutoff 0 vs 127 on a held
+     note produced a huge, unambiguous spectral-centroid shift (590 Hz → 2062 Hz sustain mean) and
+     RMS change (0.003 → 0.058) — confirms the test methodology itself reliably detects a CC that's
+     known to work, so the null results below aren't just "the test doesn't work."
+   - **CC 15 OSC PULSE WIDTH (PWM depth), SHIFT-combo — confirmed NOT producing a measurable
+     effect**, in two independent test configurations: (a) depth 0 vs 127 alone, sustain
+     spectral-centroid stddev 362.6 Hz vs 353.0 Hz (no real difference); (b) re-tested with the LFO
+     explicitly routed toward the oscillator first (CC 13 OSC LFO = 100, CC 3 LFO RATE = 40, to rule
+     out "PWM depth doing nothing because nothing was modulating pulse width in the first place" as
+     a confound) — still no difference (107.9 Hz vs 108.9 Hz stddev, mean centroid 996 Hz vs 1012
+     Hz). As a further control, CC 13 (OSC LFO, a *plain* non-SHIFT CC) alone — same LFO-routed
+     setup, only toggling CC 13 itself 0 vs 127 — did show a real, if modest, difference (98.4 Hz vs
+     128.4 Hz stddev), confirming the signal path *can* carry a measurable modulation-depth change
+     over plain MIDI when the CC involved isn't a SHIFT-combo one. This is consistent with the Pd
+     community author's reported difficulty (§4) for at least this one CC — it's not just their
+     patch, CC 15 measurably does nothing here either.
+   - **CC 5 PORTAMENTO TIME, SHIFT-combo — inconclusive**, not confirmed either way. Attempted
+     pitch-glide-time comparison (two sequential notes a fifth apart, portamento on via CC 65=127,
+     CC5=0 vs CC5=127, autocorrelation-based F0 tracking) but the pitch tracker got confused by
+     octave/subharmonic errors (likely the sub-oscillator's strong low-frequency content pulling the
+     autocorrelation peak down, compounded by CC80=32's own ~10.6 Hz amplitude-beat artifact from
+     item 3 above adding noise throughout the whole capture window) — neither CC5 value produced a
+     trajectory the tracker could confidently resolve near the target pitch. This is a test-design
+     limitation, not evidence about CC 5 either way. A cleaner re-test would need either a
+     purpose-built pitch tracker robust to the S-1's harmonic content, or a simpler non-pitch metric
+     that still captures glide (e.g. isolating just the sub-oscillator or disabling it via CC 21
+     first to reduce subharmonic confusion).
+   **Net finding:** at least one SHIFT-combo CC (15) is confirmed not to work as a plain CC over
+   MIDI — this is a real, usable caveat, now in `s1cc`'s JSDoc. It should not be generalized to all
+   31 SHIFT-combo CCs without testing each one; CC 5's result stayed genuinely open.
+5. **Full owner's manual body — read (skimmed for actionable content) 2026-07-31.** Fetched the PDF
+   (75 pages) and grepped/read the sections relevant to this project rather than reading linearly.
+   Findings folded into the relevant sections above/below rather than left here:
+   - SYnC menu setting → folded into §3's addendum and item 1 above.
+   - POLY mode's four named values + definitions → folded into item 3 above.
+   - **D-MOTION** (tilt-based control, [D-MOTION] button + accelerometer): confirmed this is
+     **not MIDI-exposable at all** — no CC in the chart corresponds to "D-MOTION on/off" or to raw
+     tilt data, so there's no candidate Strudel helper here for v1 or later; the feature is
+     panel/accelerometer-only. What *is* relevant: D-MOTION's OSC/FILTER pitch and cutoff modulation
+     shares the same "Bend Sens" destination registers as MIDI Pitch Bend (CC 18 OSC BEND SENS, CC
+     27 FILTER BEND SENS — "sets the variable range when you control ... using D-MOTION **or** MIDI
+     pitch bend signals"). Practical consequence: a Strudel pattern sending MIDI pitch bend is
+     already covered by `s1cc('oscBendSens', ...)` / `s1cc('filterBendSens', ...)` for shaping that
+     response range — no new function needed, just worth knowing the two features aren't unrelated
+     if someone later wonders why turning a "D-MOTION" knob and their own pitch-bend patterns
+     interact.
+   - **`txPc`/`rxPc`/`Pc.Ch` menu settings** (Tx Program Change, Rx Program Change, Program Change
+     Channel — "Using the menus" section): the S-1 has independent on/off switches for whether it
+     transmits a Program Change when its own pattern changes (`txPc`) and whether it *responds* to
+     an incoming Program Change by actually switching patterns (`rxPc`), plus a separate
+     configurable channel for Program Change specifically (`Pc.Ch`, defaults per the MIDI chart to
+     16 but is user-changeable 1-16, independent of the note channel). **Real caveat for
+     `s1select`**: if `rxPc` is off on a given unit, or `Pc.Ch` has been changed away from 16,
+     `s1select(...)`'s Program Change will silently do nothing — now noted in `s1select`'s JSDoc as
+     a troubleshooting pointer.
+   - Skipped deliberately: per-effect deep-dive parameter tables (chorus type list, delay-sync note
+     values, EQ), sequencer step-editing workflow, factory-reset procedure, mobile/iOS connection
+     details — none of these change anything about the CC-level API surface this package exposes;
+     they're panel-workflow or DAW-adjacent content, not MIDI pattern-writing content.
 
 ---
 
