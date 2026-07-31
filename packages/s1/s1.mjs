@@ -171,12 +171,20 @@ export function s1cc(nameOrNumber, valuePattern) {
  * fundamentals, including pitches NOT in the sent chord -- consistent with
  * chord-voice auto-generation, not simple 4-voice polyphony of exactly what
  * was sent). That's a real, reproduced 2-way split, confirmed twice.
- * **What's NOT resolved:** which of the two low-CC values is "Mono" vs
- * "Unison" (they may be spectrally indistinguishable by pitch-counting --
- * Unison detunes/thickens one note rather than changing pitch count), and
- * likewise which high-CC region is "Poly" vs "Chord". Don't trust a 4-way
- * name mapping from this data -- it isn't there. **CC80=0 specifically
- * produced NO audible output at all, twice, reproducibly** -- a real usable
+ * **Mono vs Unison follow-up (2026-07-31, single sustained note instead of
+ * a chord):** CC80=16 produced NO audible output for a single note (twice,
+ * reproducible) despite audibly working for a 4-note chord in the earlier
+ * test -- single-note and chord behavior genuinely differ at this value,
+ * not a test artifact. CC80=32 gave one clean spectral peak (no detected
+ * pitch-splitting) plus a strong ~10.6 Hz amplitude envelope beat --
+ * *suggestive* of unison-style oscillator detuning (which would show as
+ * exactly this kind of beating between near-identical pitches), but
+ * inconclusive: a patch-level tremolo/LFO would look identical by this
+ * method. **Left unresolved, honestly** -- don't trust a 4-way name
+ * mapping from this data, it still isn't there, just a bit more textured
+ * than a flat "unknown."
+ * **CC80=0 specifically produced NO audible output at all, twice,
+ * reproducibly, for both chord and single-note tests** -- a real usable
  * finding: don't default anything to exactly 0 without expecting silence.
  * This still deliberately does not offer named mode arguments given the
  * above -- sweep/set the raw 0-1 range yourself, or use

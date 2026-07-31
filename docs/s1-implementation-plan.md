@@ -437,6 +437,13 @@ specific CCs (§5's `s1polyMode` row, §4's SHIFT-combo caveat), not the basic C
    until someone resolves the remaining ambiguity (likely needs either the full manual body, or a
    test that distinguishes detuning/thickness from auto-generated extra pitches, not just FFT peak
    counting).
+   **Follow-up same day:** tested CC80=16 vs 32 with a single sustained note (not a chord),
+   specifically looking for unison-style detuning (a split/doubled spectral peak, or amplitude
+   beating). CC80=16 was silent for a single note (reproduced twice) despite being audible for a
+   chord — genuine single-note-vs-chord behavior difference, not a test bug. CC80=32 showed one
+   clean spectral peak (no splitting) plus a strong ~10.6 Hz amplitude-envelope beat — suggestive
+   of unison detuning, but inconclusive (a patch-level tremolo/LFO would look identical by this
+   method). Still unresolved, now with more texture than a flat unknown.
 4. **SHIFT-combo CC behavior (§4):** whether any of the ~15 CCs whose panel description includes a
    SHIFT gesture behave identically to a plain knob CC when sent over MIDI, or have some quirk (the
    Pd community project's author couldn't fully resolve this either). Unblocked by: hardware testing
