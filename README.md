@@ -17,7 +17,8 @@ treat with lower confidence and confirm before relying on them.
 **[SPEC]**
 - t8live is a full fork of [Strudel](https://codeberg.org/uzu/strudel), a browser-based
   live-coding pattern language (a JS port of TidalCycles)
-- Adds first-class support for the Roland AIRA Compact T-8 beat machine over Web MIDI
+- Adds first-class support for the Roland AIRA Compact T-8 beat machine and the AIRA Compact S-1
+  synth over Web MIDI
 - Primary repo: `codeberg.org/catcam/t8live` — GitHub is a read-only mirror (see `[NOTE]` below)
 - License: AGPL-3.0-or-later, same as upstream Strudel
 - Domain: t8live.fyi (hosting target not yet decided)
@@ -90,7 +91,72 @@ numbers, which is why `t8bass` needs no name-mapping step, unlike `t8drum`.
 
 ---
 
-## 4. Known bugs (fixed in this fork — don't re-break these)
+## 4. Writing S-1 patterns — the `@strudel/s1` API
+
+**[SPEC]**
+Package: `packages/s1/s1.mjs`, globally available in the REPL (registered via `evalScope` in
+`packages/repl/prebake.mjs` and `website/src/repl/util.mjs`, same mechanism as `@strudel/t8`) — no
+import needed in your pattern. Full sourced research/implementation writeup, including hardware-test
+results and open questions, lives in `docs/s1-implementation-plan.md`.
+
+| Function | Purpose | Channel |
+|---|---|---|
+| `s1note(pattern)` | Sets the S-1's synth channel on a note pattern (standard note names/numbers pass through unchanged) | 3 |
+| `s1cc(name \| ccNumber, valuePattern)` | Named-parameter CC helper, e.g. `s1cc('cutoff', ...)` instead of `.ccn(74).ccv(...)` — full name table in `S1_CC` | n/a |
+| `s1polyMode(valuePattern)` | Raw 0-1 passthrough for CC 80 (POLY MODE) — deliberately not a named enum, see caveat below | n/a |
+| `s1chord({voice2, voice3, voice4, voice2Shift, voice3Shift, voice4Shift})` | Composite helper for the four chord-voice CCs (81-83 switches, 85-87 key-shifts) instead of six separate `s1cc` calls | n/a |
+| `s1select(patch)` | Program Change to select an S-1 patch slot (flat 0-63 range, no bank split unlike `t8select`) | 16 |
+| `s1clock(ticksPerCycle=48)` | Continuous MIDI Clock stream | n/a |
+| `s1transport(startStopPattern='<start stop>/2', ticksPerCycle=48)` | Clock + Start/Stop, stacked | n/a |
+
+Unlike the T-8, the S-1 is up to 4-voice polyphonic (Poly/Mono/Unison/Chord, switchable via
+`s1polyMode`/CC 80) — stacked/chorded note patterns are a first-class case for `s1note`, not just a
+monophonic bassline. All of the above still need `.midi('S-1 MIDI IN')` appended to actually send
+anything.
+
+```js
+// a chord, sent to the S-1's synth channel
+note("<[c3,eb3,g3] [c3,f3,ab3]>").s1note().midi('S-1 MIDI IN')
+
+// sweep the filter cutoff
+s1cc('cutoff', sine.slow(4)).midichan(3).midi('S-1 MIDI IN')
+
+// set chord-voice 2 on with a key shift, leave 3/4 alone
+s1chord({ voice2: true, voice2Shift: 0.6 }).midichan(3).midi('S-1 MIDI IN')
+
+// select patch slot 12
+s1select(12).midi('S-1 MIDI IN')
+
+// drive the S-1's own transport -- unlike the T-8, this needs no on-device
+// mode toggle for Clock/Start/Stop to work (confirmed against real hardware)
+s1transport("<start stop>/4").midi('S-1 MIDI IN')
+```
+
+**[NOTE]**
+Unlike `t8bass`, `s1note` needs no note-name-to-MIDI-note mapping table — the S-1's own MIDI chart
+confirms a true 0-127 voice range with no internal remapping. The bulk of the CC table (§1.3 of the
+plan doc) is directly sourced from Roland's official chart, cross-checked against the PDF version
+of the manual (the HTML version's Transmitted/Recognized columns didn't survive scraping cleanly;
+the PDF did).
+
+**[BUG-LIKE CAVEAT] `s1cc('pulseWidth', ...)` (CC 15, PWM depth) does not audibly work**
+Roughly 31 of the S-1's ~54 documented CCs are only reachable on the physical panel via a
+`[SHIFT]+knob/pad` gesture — the MIDI chart lists them as ordinary CC numbers with no modifier byte,
+but a community Pure Data project's author previously reported difficulty getting SHIFT-combo CCs
+working at all. Hardware-tested here (2026-07-31, spectral analysis via the S-1 audio bridge): CC 15
+(OSC PULSE WIDTH / PWM depth) produces no measurable audible change between depth=0 and depth=127,
+in two independent test configurations, even with the LFO explicitly routed toward the oscillator
+first to rule out an unrouted-modulation confound — while a known-good non-SHIFT CC (74, filter
+cutoff) and even a modest non-SHIFT modulation-depth CC (13, OSC LFO) both clearly worked in the
+same setup. Treat any other SHIFT-combo CC in `S1_CC` with the same suspicion until individually
+verified — see `docs/s1-implementation-plan.md` §9 item 4 for the full list and methodology.
+CC 5 (PORTAMENTO TIME, also SHIFT-combo) was also tested but the result was genuinely inconclusive
+(pitch-tracking limitations, not a hardware finding either way) — left honestly unresolved rather
+than guessed at.
+
+---
+
+## 5. Known bugs (fixed in this fork — don't re-break these)
 
 **[BUG] `.midi()` sends an unwanted Start message on every cycle-0 hap**
 Symptom: pressing play on *any* pattern using `.midi()` — even one that never touches `midicmd` —
@@ -132,7 +198,7 @@ assuming a code change didn't take effect. Kill all of them, then start exactly 
 
 ---
 
-## 5. Workflow notes for this repo
+## 6. Workflow notes for this repo
 
 **[SPEC]**
 - Primary remote: `origin` → `codeberg.org/catcam/t8live`. Push here first, always.
