@@ -282,7 +282,15 @@ For `@strudel/s1`:
 
 ## 7. Site/UI changes
 
-**[SPEC]**
+**[SPEC][SUPERSEDED 2026-07-31 — see §9's later entry]** This section originally recommended
+*against* building an S-1 audio bridge for v1 (reasoning below kept for the record). That changed
+the same day once a real S-1 was on hand: `mac_bridge/s1_audio_bridge.py` now exists in this repo
+(adapted from `roland-t8`'s `audio_bridge.py`, not a from-scratch build — the "much bigger lift"
+concern below turned out not to apply once there was a proven reference implementation to adapt),
+running as LaunchAgent `com.catcam.s1helper.audiobridge` on port 8738, with `S1Tab.jsx` now polling
+it exactly like `T8Tab.jsx` does. See `mac_bridge/s1_audio_bridge.py`'s module docstring for the
+TCC/LaunchAgent evidence trail.
+
 - **No new "audio bridge" tab needed for v1, and it shouldn't be forced onto S-1 by analogy to
   T8Tab.jsx.** T8Tab.jsx (`website/src/repl/components/panel/T8Tab.jsx`) polls a local
   `audio_bridge.py` HTTP API (`127.0.0.1:8737`) that's part of the separate `roland-t8` project and
@@ -339,6 +347,26 @@ For `@strudel/s1`:
   Nikša's own 2026-07-30 mobile check: the "reference" tab label already clips at 393px viewport
   width before this change). Not fixed as part of this work — pre-existing issue, just noting it
   gets one tab worse.
+
+**[SPEC]** Later the same day: §7's original "no audio bridge for v1" recommendation was reversed.
+- `mac_bridge/s1_audio_bridge.py` added — adapted from `roland-t8`'s `audio_bridge.py` (same
+  sounddevice full-duplex `sd.Stream` approach, same HTTP API shape), not built from scratch.
+- Installed as LaunchAgent `com.catcam.s1helper.audiobridge` on the Mac
+  (`~/.s1helper/audio_bridge.py`, port 8738 — one below the T-8 bridge's 8737 so both run at once).
+- **TCC question resolved with evidence, not assumption:** checked `TCC.db` directly and read
+  `roland-t8`'s git history (commits 6f30c76, e4d09e5). Root cause of why the T-8 bridge's
+  LaunchAgent needs no Terminal.app ancestor: the responsible-process identity macOS attributes to
+  `/Applications/Xcode.app/Contents/Developer/usr/bin/python3` resolves to that binary's *enclosing
+  signed app bundle* (`com.apple.dt.Xcode`), which already holds a durable Microphone grant — keyed
+  to the executable's bundle, not to the launchd Label. Confirmed empirically for the S-1 bridge:
+  bootstrapped a brand-new LaunchAgent with a different Label
+  (`com.catcam.s1helper.audiobridge` vs. `com.catcam.t8helper.audiobridge`), and it started
+  streaming real audio immediately — `TCC.db` shows no new row was created for it at all, and a
+  live MIDI-triggered note produced real nonzero peak/rms through `/status` within one polling
+  cycle. **No permission prompt appeared or was needed.**
+- `S1Tab.jsx` rewritten to poll `/status` and `/levels` the same way `T8Tab.jsx` does (same
+  `useAudioBridge()` hook shape, `MeterBar`, `ALLOWED_ORIGINS` CORS allowlist — using
+  `https://t8live.fyi`, the current domain, not the T-8 script's stale `t8strudel.fyi`).
 
 ---
 
