@@ -63,6 +63,15 @@ describe('s1cc', () => {
   it('throws immediately for an out-of-range raw CC number', () => {
     expect(() => s1cc(128, mini('0.5'))).toThrow(/CC number must be an integer 0-127/);
   });
+
+  it('gives a helpful error if the name arg is transpiler-wrapped (double-quoted) instead of a plain string', () => {
+    // Reproduces a real mistake made testing this live: s1cc("cutoff", ...) in
+    // the actual REPL auto-wraps "cutoff" into a Pattern via the transpiler,
+    // same as register()'s own name argument -- see register()'s identical
+    // error message in packages/core/pattern.mjs for the established
+    // convention this mirrors.
+    expect(() => s1cc(mini('cutoff'), mini('0.5'))).toThrow(/try using single quotes/);
+  });
 });
 
 describe('s1polyMode', () => {

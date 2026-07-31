@@ -143,6 +143,11 @@ export const s1note = register('s1note', (pat) => {
  */
 export function s1cc(nameOrNumber, valuePattern) {
   let n = nameOrNumber;
+  if (isPattern(n)) {
+    throw new Error(
+      "[s1cc] name/CC argument is a pattern, try using single quotes ('cutoff') instead of double quotes (\"cutoff\") -- the strudel transpiler auto-wraps double-quoted strings into patterns, which s1cc's name argument isn't meant to be",
+    );
+  }
   if (typeof n === 'string') {
     if (!(n in S1_CC)) {
       throw new Error(`[s1cc] unknown S-1 parameter "${n}" -- expected a CC number or one of ${Object.keys(S1_CC).join(', ')}`);
