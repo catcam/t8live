@@ -1,0 +1,43 @@
+{
+  "name": "@strudel/s1",
+  "version": "0.1.0",
+  "description": "Roland AIRA Compact S-1 helpers for strudel (note channel, named CC params, patch select, clock/transport)",
+  "main": "index.mjs",
+  "type": "module",
+  "publishConfig": {
+    "main": "dist/index.mjs"
+  },
+  "scripts": {
+    "build": "vite build",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://codeberg.org/catcam/t8live.git"
+  },
+  "keywords": [
+    "tidalcycles",
+    "strudel",
+    "pattern",
+    "livecoding",
+    "algorave",
+    "roland",
+    "s-1",
+    "midi"
+  ],
+  "license": "AGPL-3.0-or-later",
+  "bugs": {
+    "url": "https://codeberg.org/catcam/t8live/issues"
+  },
+  "homepage": "https://t8live.fyi",
+  "dependencies": {
+    "@strudel/core": "workspace:*",
+    "@strudel/mini": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^6.0.11"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

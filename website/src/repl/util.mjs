@@ -93,7 +93,7 @@ export function loadModules() {
       import('@strudel/desktopbridge/oscbridge.mjs'),
     ]);
   } else {
-    modules = modules.concat([import('@strudel/midi'), import('@strudel/osc'), import('@strudel/t8')]);
+    modules = modules.concat([import('@strudel/midi'), import('@strudel/osc'), import('@strudel/t8'), import('@strudel/s1')]);
   }
 
   return evalScope(settingPatterns, ...modules);
