@@ -87,11 +87,14 @@ t8transport("<start stop>/4").midi('T-8 MIDI IN')`}
       <h3>credits</h3>
       <p>
         t8live is built by <span className="underline">Nikša Barlović</span> with{' '}
-        <span className="underline">Claude</span> (Anthropic), on top of the work of the{' '}
+        <span className="underline">Claude</span> (Anthropic), standing on the shoulders of{' '}
+        <span className="underline">Felix Roos</span>, who wrote Strudel, <span className="underline">Alex McLean</span>,
+        who created TidalCycles, and the rest of the{' '}
         <a href="https://codeberg.org/uzu/strudel/activity/contributors" target="_blank">
           strudel and tidalcycles contributors
         </a>
-        . All credit for the pattern engine, mini-notation language, and audio engine belongs to them.
+        . All credit for the pattern engine, mini-notation language, and audio engine belongs to them. Thank you for
+        the shoulders to stand on.
       </p>
     </div>
   );
