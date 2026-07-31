@@ -162,18 +162,72 @@ export function s1cc(nameOrNumber, valuePattern) {
 }
 
 /**
- * Raw 0-1 passthrough for CC 80 (POLY MODE). NOT hardware-verified: the
- * official chart names the CC but not its Poly/Mono/Unison/Chord value
- * boundaries, so this deliberately does not offer named mode arguments --
- * sweep/set the raw 0-1 range yourself and listen, or use s1cc('polyMode',
- * value) directly, which this just aliases for discoverability.
+ * Raw 0-1 passthrough for CC 80 (POLY MODE). PARTIALLY hardware-verified
+ * (2026-07-31, spectral/FFT analysis of real S-1 audio via the audio
+ * bridge, not just listening): a 4-note chord sent at CC80=0/16/32
+ * consistently produces a SPARSE spectrum (one fundamental + its own
+ * harmonics -- single-voice-like behavior), while CC80=40 through 127
+ * consistently produces a RICH spectrum (multiple simultaneous
+ * fundamentals, including pitches NOT in the sent chord -- consistent with
+ * chord-voice auto-generation, not simple 4-voice polyphony of exactly what
+ * was sent). That's a real, reproduced 2-way split, confirmed twice.
+ * **What's NOT resolved:** which of the two low-CC values is "Mono" vs
+ * "Unison" (they may be spectrally indistinguishable by pitch-counting --
+ * Unison detunes/thickens one note rather than changing pitch count), and
+ * likewise which high-CC region is "Poly" vs "Chord". Don't trust a 4-way
+ * name mapping from this data -- it isn't there. **CC80=0 specifically
+ * produced NO audible output at all, twice, reproducibly** -- a real usable
+ * finding: don't default anything to exactly 0 without expecting silence.
+ * This still deliberately does not offer named mode arguments given the
+ * above -- sweep/set the raw 0-1 range yourself, or use
+ * s1cc('polyMode', value) directly, which this just aliases for
+ * discoverability.
  * @name s1polyMode
  * @tags external_io, midi, s1
  * @example
- * s1polyMode(0).midichan(3).midi('S-1 MIDI IN')
+ * s1polyMode(0.5).midichan(3).midi('S-1 MIDI IN')
  */
 export function s1polyMode(valuePattern) {
   return s1cc('polyMode', valuePattern);
+}
+
+/**
+ * Composite helper for the S-1's chord-voice CCs (81-83 on/off switches,
+ * 85-87 key-shift amounts) -- a single call instead of six separate s1cc
+ * calls. Confirmed live (2026-07-31, FFT analysis) that chord-voice content
+ * audibly appears once CC80/poly-mode is in its "rich" region even with
+ * these CCs left at their power-on defaults, producing pitches you didn't
+ * ask for -- use this to set the voices explicitly instead of inheriting
+ * whatever the default key-shift amounts happen to be.
+ * Only pass the voices/shifts you want to set; omitted ones aren't sent.
+ * Key-shift is a raw 0-1 CC passthrough like s1cc's value args -- the exact
+ * semitone range/center-point for CC 85-87 is NOT hardware-verified (the
+ * chart gives no value table for it), so this does not attempt to convert
+ * "semitones" into a CC value for you. Sweep and listen.
+ * @name s1chord
+ * @tags external_io, midi, s1
+ * @example
+ * s1chord({ voice2: true, voice2Shift: 0.6, voice3: true, voice3Shift: 0.4 }).midichan(3).midi('S-1 MIDI IN')
+ */
+export function s1chord({
+  voice2,
+  voice3,
+  voice4,
+  voice2Shift,
+  voice3Shift,
+  voice4Shift,
+} = {}) {
+  const parts = [];
+  if (voice2 !== undefined) parts.push(s1cc('chordVoice2Sw', voice2 ? '1' : '0'));
+  if (voice3 !== undefined) parts.push(s1cc('chordVoice3Sw', voice3 ? '1' : '0'));
+  if (voice4 !== undefined) parts.push(s1cc('chordVoice4Sw', voice4 ? '1' : '0'));
+  if (voice2Shift !== undefined) parts.push(s1cc('chordVoice2KeyShift', String(voice2Shift)));
+  if (voice3Shift !== undefined) parts.push(s1cc('chordVoice3KeyShift', String(voice3Shift)));
+  if (voice4Shift !== undefined) parts.push(s1cc('chordVoice4KeyShift', String(voice4Shift)));
+  if (parts.length === 0) {
+    throw new Error('[s1chord] pass at least one of voice2/voice3/voice4/voice2Shift/voice3Shift/voice4Shift');
+  }
+  return parts.length === 1 ? parts[0] : stack(...parts);
 }
 
 /**

@@ -422,11 +422,21 @@ specific CCs (§5's `s1polyMode` row, §4's SHIFT-combo caveat), not the basic C
    the table visually, or find the PDF version of the manual — a PDF link is listed at
    `assets.brack.ch/documents2/7/0/7/282129707/282129707.pdf`, not yet opened during this pass) —
    or just not building any inbound (S-1→host) CC feature until it doesn't matter.
-3. **CC 80 (POLY MODE) and CC 81-83/85-87 (Chord voice switches) exact value semantics:** the chart
-   gives the CC number and panel-control name but not the discrete value ranges (e.g. does CC 80 use
-   0-31=Poly, 32-63=Mono, etc., or some other split?). Unblocked by: MIDI-monitoring a real S-1
-   while manually switching poly modes on the panel and reading off the CC values it responds to
-   *or* transmits (whichever direction turns out to work per open question 2).
+3. **CC 80 (POLY MODE) exact value semantics — PARTIALLY resolved (2026-07-31):** tested via the
+   S-1 audio bridge (`mac_bridge/s1_audio_bridge.py`'s `/capture` endpoint) + offline FFT analysis
+   of a 4-note chord (c3/eb3/g3/bb3) sent at CC80 = 0, 16, 32, 40, 48, 56, 64, 96, 127. Confirmed,
+   reproduced twice: **CC80 ∈ {0, 16, 32} → sparse spectrum** (one fundamental + harmonics, single-
+   voice-like); **CC80 ∈ {40, 48, 56, 64, 96, 127} → rich spectrum** (multiple simultaneous
+   fundamentals, including pitches not present in the sent chord — consistent with chord-voice
+   auto-generation, not simple 4-voice reproduction of exactly what was sent). **CC80=0 specifically
+   produced no audible output at all, both times** — a real, usable gotcha (see `s1.mjs`'s
+   `s1polyMode` docstring). **Still NOT resolved:** which low value is Mono vs Unison (may be
+   spectrally indistinguishable by pitch-counting — Unison thickens/detunes one note rather than
+   changing how many pitches sound) and which high-value region is Poly vs Chord. Don't invent a
+   4-way name mapping from this data. `s1polyMode` stays a raw 0-1 passthrough, not a named enum,
+   until someone resolves the remaining ambiguity (likely needs either the full manual body, or a
+   test that distinguishes detuning/thickness from auto-generated extra pitches, not just FFT peak
+   counting).
 4. **SHIFT-combo CC behavior (§4):** whether any of the ~15 CCs whose panel description includes a
    SHIFT gesture behave identically to a plain knob CC when sent over MIDI, or have some quirk (the
    Pd community project's author couldn't fully resolve this either). Unblocked by: hardware testing

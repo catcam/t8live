@@ -15,7 +15,7 @@ handling that direct function calls with plain values would have missed).
 import { note, stack } from '@strudel/core';
 import { mini } from '@strudel/mini';
 import { describe, it, expect } from 'vitest';
-import { s1note, s1cc, s1polyMode, s1select, s1clock, s1transport, S1_CC } from '../s1.mjs';
+import { s1note, s1cc, s1polyMode, s1chord, s1select, s1clock, s1transport, S1_CC } from '../s1.mjs';
 
 describe('s1note', () => {
   it('sets channel 3 without altering note values', () => {
@@ -71,6 +71,32 @@ describe('s1cc', () => {
     // error message in packages/core/pattern.mjs for the established
     // convention this mirrors.
     expect(() => s1cc(mini('cutoff'), mini('0.5'))).toThrow(/try using single quotes/);
+  });
+});
+
+describe('s1chord', () => {
+  it('sets a single chord-voice switch to the right CC', () => {
+    const haps = s1chord({ voice2: true }).queryArc(0, 1);
+    expect(haps[0].value.ccn).toBe(S1_CC.chordVoice2Sw);
+    expect(haps[0].value.ccn).toBe(81);
+    expect(haps[0].value.ccv).toBe(1);
+  });
+
+  it('turning a voice off sends ccv=0, not just omitting it', () => {
+    const haps = s1chord({ voice3: false }).queryArc(0, 1);
+    expect(haps[0].value.ccn).toBe(82);
+    expect(haps[0].value.ccv).toBe(0);
+  });
+
+  it('combines multiple voices/shifts into one stacked pattern', () => {
+    const haps = s1chord({ voice2: true, voice2Shift: 0.6, voice4: true }).queryArc(0, 1);
+    const ccns = haps.map((h) => h.value.ccn).sort((a, b) => a - b);
+    expect(ccns).toEqual([81, 83, 85]); // chordVoice2Sw, chordVoice4Sw, chordVoice2KeyShift
+  });
+
+  it('throws if called with no arguments at all', () => {
+    expect(() => s1chord()).toThrow(/pass at least one of/);
+    expect(() => s1chord({})).toThrow(/pass at least one of/);
   });
 });
 
