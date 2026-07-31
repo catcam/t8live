@@ -141,18 +141,60 @@ export const s1note = register('s1note', (pat) => {
  * chart (docs/s1-implementation-plan.md §1.3, resolved against the PDF
  * manual 2026-07-31), so in principle every name here should do something.
  * In practice, 31 of them are only reachable on the physical panel via a
- * [SHIFT]+knob/pad gesture, and at least one of those -- oscPulseWidth (CC
- * 15, PWM depth) -- is HARDWARE-CONFIRMED to have NO measurable audible
- * effect when sent as a plain CC over MIDI (tested 2026-07-31 via the S-1
- * audio bridge + spectral analysis, in two independent configurations,
- * including one with the LFO explicitly routed toward the oscillator to
- * rule out an unrouted-modulation confound -- see plan doc §9 item 4 for
- * the full writeup). A community Pd project's author reported the same
- * kind of difficulty with SHIFT-combo CCs generally. Treat any other
- * SHIFT-combo name in S1_CC (see plan doc §4's list) with the same caution
- * until it's individually verified against real hardware -- the chart
- * lists them as ordinary CC numbers, but that's not proof they behave like
- * one.
+ * [SHIFT]+knob/pad gesture, and the chart listing them as ordinary CC
+ * numbers is NOT proof they behave like one -- at least one (oscPulseWidth,
+ * CC 15) is hardware-confirmed to do nothing at all. All 31 SHIFT-combo CCs
+ * have now been individually tested against real hardware (2026-07-31/
+ * 2026-08-01, see plan doc §9 item 4 for full methodology and per-CC
+ * numbers). Per-CC confidence, from that testing:
+ *
+ * CONFIRMED WORKING (clear, multi-metric spectral change well above the
+ * observed noise floor): fineTune (76), transposeSw (77), filterBendSens
+ * (27, tested with an active pitch-bend message since it's inert without
+ * one).
+ *
+ * LIKELY WORKING (moderate confidence -- effect size clearly above the
+ * ~6% noise-floor ceiling seen among the confirmed-negative CCs, but only
+ * tested once, not to CC15's more rigorous two-configuration bar):
+ * oscChopOvertone (103).
+ *
+ * CONFIRMED NOT WORKING: oscPulseWidth (15, two independent test
+ * configurations -- plain depth sweep and LFO-routed-to-osc sweep, see
+ * plan doc §9 item 4 for the full writeup).
+ *
+ * NO EFFECT DETECTED (single-pass baseline-vs-extreme test, same method as
+ * the "likely/confirmed working" bucket above but the result came back
+ * flat -- weaker evidence than CC15's confirmed-broken status since each
+ * of these was only tested once): oscPwmSource (16), lfoModulationDepth
+ * (17), oscBendSens (18, pitch-bend tested), oscSubOctType (22),
+ * ampEnvelopeModeSw (28), envTriggerMode (29), portamentoMode (31),
+ * noiseMode (78), lfoMode (79), chordVoice3Sw (82), chordVoice4Sw (83),
+ * chordVoice3KeyShift (86), chordVoice4KeyShift (87), reverbTime (89),
+ * delayTime (90), chorus (93), oscDrawMultiply (102), oscChopComb (104),
+ * lfoKeyTrigger (105), lfoSync (106), oscDrawSw (107). Several of these
+ * (envTriggerMode, portamentoMode, reverbTime, delayTime) plausibly need a
+ * different test shape than "one held note, baseline vs extreme value" to
+ * reveal an effect at all (e.g. portamentoMode's effect would only show up
+ * across a note-to-note transition, not a single held note) -- a flat
+ * result here is genuinely weaker evidence of brokenness than it is for a
+ * CC whose effect *should* be visible on a single held note.
+ *
+ * INCONCLUSIVE (ambiguous or methodology-limited, don't treat either
+ * direction as established): portamentoTime (5, original finding, pitch
+ * tracker confused by subharmonic content), filterKeyboardFollow (26,
+ * cross-note test gave a result dominated by broadband low-frequency
+ * content rather than a clean cutoff-vs-pitch scaling signal),
+ * chordVoice2Sw (81, borderline centroid shift but near-identical spectral
+ * shape -- weaker signal than a genuine added voice should produce),
+ * chordVoice2KeyShift (85, see s1chord's JSDoc -- a dedicated differential
+ * FFT test found no isolable added-voice pitch at any key-shift value).
+ *
+ * A community Pd project's author independently reported the same kind of
+ * difficulty with SHIFT-combo CCs generally (plan doc §4), consistent with
+ * more than one of them not working as advertised. Treat any SHIFT-combo
+ * name not in the "confirmed/likely working" buckets above with real
+ * caution -- "no effect detected" is not the same confidence level as
+ * CC15's "confirmed not working," but it's not a green light either.
  * @name s1cc
  * @tags external_io, midi, s1
  * @example
@@ -216,10 +258,28 @@ export function s1cc(nameOrNumber, valuePattern) {
  * against each other). That narrows the story but still does NOT establish
  * the exact CC-value boundaries between all four modes (the manual gives
  * names, not CC80 numbers), and doesn't explain why CC80=16 was silent for
- * a single note the way a plain Mono mode shouldn't be. This still
- * deliberately does not offer named mode arguments given the above --
- * sweep/set the raw 0-1 range yourself, or use s1cc('polyMode', value)
- * directly, which this just aliases for discoverability.
+ * a single note the way a plain Mono mode shouldn't be.
+ * **CC80=32 Unison hypothesis CONFIRMED (2026-08-01), decisive test:**
+ * played the same CC80=32 test at two notes two octaves apart (c4=261.6Hz,
+ * c6=1046.5Hz -- substituted for the original c3/c5 idea because c3 turned
+ * out to be silent on the test unit's current patch for unrelated reasons)
+ * and compared the amplitude-envelope beat frequency (Hilbert-envelope FFT)
+ * between them. Result: beat frequency scaled from 2.15 Hz at c4 to 8.38 Hz
+ * at c6, a 3.90x ratio against a theoretical 4.00x pitch ratio (~2.5% off
+ * an exact match) -- this is the signature of genuine unison detuning (two
+ * oscillators a fixed number of cents apart; cents are multiplicative, so
+ * the beat Hz scales with the fundamental), and rules out a fixed-rate
+ * LFO/tremolo (which would hold the beat frequency constant regardless of
+ * note pitch). Absolute beat-Hz values are not expected to match the
+ * original 2026-07-31 c3 measurement (~10.6 Hz) session-to-session --
+ * what matters for Mono-vs-Unison is the *within-test* scaling, which came
+ * out clean. **CC80=32 is confirmed Unison, not a patch-level tremolo.**
+ * This still does NOT establish the exact CC-value boundaries for all four
+ * modes (Mono/Poly/Chord numeric ranges remain unmapped) or explain the
+ * CC80=16 single-note silence above, so this still deliberately does not
+ * offer named mode arguments -- sweep/set the raw 0-1 range yourself, or
+ * use s1cc('polyMode', value) directly, which this just aliases for
+ * discoverability.
  * @name s1polyMode
  * @tags external_io, midi, s1
  * @example
@@ -242,6 +302,30 @@ export function s1polyMode(valuePattern) {
  * semitone range/center-point for CC 85-87 is NOT hardware-verified (the
  * chart gives no value table for it), so this does not attempt to convert
  * "semitones" into a CC value for you. Sweep and listen.
+ *
+ * **Calibration attempt, inconclusive (2026-08-01):** tried to establish
+ * the real semitone mapping by playing a fixed root note, enabling
+ * chordVoice2Sw with CC80/poly-mode pinned to its known-audible single-note
+ * value (32), and sweeping chordVoice2KeyShift through 0/0.25/0.5/0.75/1.0
+ * while looking for a second pitch (via both raw peak-picking and a
+ * differential FFT against a chord-off reference capture, to cancel out a
+ * broadband low-frequency noise floor that dominated raw peak-picking).
+ * Neither method found a clean, consistently-tracking second-voice
+ * fundamental across the five key-shift values -- the strongest
+ * non-root-harmonic energy found was small (a few tenths of a percent of
+ * total spectral energy) and didn't move in a way consistent with a real
+ * pitch sweep. This matches the broader batch SHIFT-combo test's own
+ * borderline read on chordVoice2Sw itself (s1cc's JSDoc, "INCONCLUSIVE"
+ * bucket) -- it's not clear the chord-voice mechanism was reliably audible
+ * under any tested configuration, whether that's because it genuinely
+ * needs a true multi-note chord as input (per the manual's own "Chord"
+ * definition -- see s1polyMode's JSDoc) rather than a single re-harmonized
+ * note, or because the added voice is mixed too quietly to register over
+ * this capture chain's noise floor. Per this project's own rule against
+ * inventing a conversion formula from noisy data: key-shift stays raw and
+ * undocumented in semitones, no `semitones` option was added. Revisit with
+ * a real multi-note chord input and/or a quieter capture setup if someone
+ * wants another pass at this.
  * @name s1chord
  * @tags external_io, midi, s1
  * @example
