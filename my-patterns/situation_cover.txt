@@ -52,8 +52,11 @@ const bassRiff = ['c#3', '~', '~', '~', 'c#3', '~', '~', 'b2', '~', 'b2', 'b2', 
 // real hook, verse/chorus shape -- alternates every bar (line A on the
 // "C#-feeling" bar, line B on the "B-feeling" bar, matching how track 1
 // actually alternates bar-to-bar in the MIDI)
-const hookLineA = ['c#4', '~', 'c#4', '~', 'c#5', '~', '~', '~', '~', '~', '~', '~', 'b4', 'g#4', 'b4', 'c#5'].join(' ');
-const hookLineB = ['c#4', '~', 'c#4', '~', 'c#5', '~', '~', '~', '~', '~', 'b4', '~', 'e5', 'd#5', 'b4', 'c#5'].join(' ');
+// tails (steps 12-15) thinned the same way as hookLift below -- both had
+// the same 4-notes-in-4-consecutive-steps density problem, missed this
+// one on the first pass, Nikša caught it by ear ("fale note na kraju riffa")
+const hookLineA = ['c#4', '~', 'c#4', '~', 'c#5', '~', '~', '~', '~', '~', '~', '~', 'b4', '~', '~', 'c#5'].join(' ');
+const hookLineB = ['c#4', '~', 'c#4', '~', 'c#5', '~', '~', '~', '~', '~', 'b4', '~', 'e5', '~', '~', 'c#5'].join(' ');
 
 // real hook, pre-chorus/turnaround phrase -- a real TWO-bar melodic idea
 // (bars 23 and 25 of the MIDI, deep in a chroma-confirmed F#/G#/D#
