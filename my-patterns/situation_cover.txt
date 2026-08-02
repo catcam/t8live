@@ -1,0 +1,41 @@
+// Yazoo -- "Situation" (1982) cover for T-8 + S-1
+// Researched via web (gemtracks/tunebat/synpop.com/KVR) + OpenRouter consult
+// (see t8live.fyi mac_bridge notes / session letter for sources).
+//
+// Key: C# minor. Whole song is a two-chord vamp: i (C#m) -- VII (B major).
+// Tempo: ~119 BPM (sources vary 118-120).
+// Original gear: TR-808 drums (crisp claps + cowbell, claps swung ~10ms late
+// every 4th hit), bass on a Moog Source / Sequential Pro-One with a mono
+// 16-step analog sequencer ("rubbery, elastic" -- PWM'd detuned squares).
+//
+// Bass pattern below is a reconstruction (OpenRouter consult, flagged by it
+// as "confident" on the driving 16ths + octave-bounce shape, uncertain on
+// the exact last-step note -- G#2/F#2 vs a more legato tail). Drum pattern
+// is NOT a literal transcription (no hit-by-hit source found) -- it's a
+// period-accurate TR-808 four-on-floor + backbeat-clap groove built from the
+// confirmed instrumentation facts. Treat both as a starting jam, not gospel
+// -- adjust by ear once you're actually listening to the original next to
+// this.
+
+import { t8drum, T8_PORT } from '@strudel/t8';
+import { s1note, S1_PORT } from '@strudel/s1';
+
+setcps(119 / 60 / 4);
+
+stack(
+  // T-8: four-on-the-floor kick
+  t8drum("bd ~ ~ ~ bd ~ ~ ~ bd ~ ~ ~ bd ~ ~ ~").midi(T8_PORT),
+  // T-8: driving 8th-note closed hats
+  t8drum("ch ~ ch ~ ch ~ ch ~ ch ~ ch ~ ch ~ ch ~").midi(T8_PORT),
+  // T-8: backbeat clap (2 and 4) -- stand-in for the original's clap+cowbell
+  t8drum("~ ~ ~ ~ clap ~ ~ ~ ~ ~ ~ ~ clap ~ ~ ~").midi(T8_PORT),
+  // S-1: bass riff, alternating C#m bar / B major bar (i -- VII vamp)
+  note(
+    "<[c#2 ~ ~ ~ c#2 ~ c#3 ~ c#2 ~ ~ ~ c#2 ~ g#2 ~] [b1 ~ ~ ~ b1 ~ b2 ~ b1 ~ ~ ~ b1 ~ f#2 ~]>"
+  )
+    .s1note()
+    .midi(S1_PORT),
+);
+
+// No vocal/lead here on purpose -- Alison Moyet's melody is the one part
+// that genuinely can't be covered by two synths, this is instrumental-only.
