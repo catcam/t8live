@@ -55,10 +55,13 @@ const bassRiff = ['c#3', '~', '~', '~', 'c#3', '~', '~', 'b2', '~', 'b2', 'b2', 
 const hookLineA = ['c#4', '~', 'c#4', '~', 'c#5', '~', '~', '~', '~', '~', '~', '~', 'b4', 'g#4', 'b4', 'c#5'].join(' ');
 const hookLineB = ['c#4', '~', 'c#4', '~', 'c#5', '~', '~', '~', '~', '~', 'b4', '~', 'e5', 'd#5', 'b4', 'c#5'].join(' ');
 
-// real hook, pre-chorus/turnaround shape (from bar 23 of the MIDI, deep in
-// a chroma-confirmed F#/G#/D# region) -- denser, lower register, this is
-// where the song's one real burst of harmonic motion actually lives
-const hookLift = ['c#3', '~', 'c#3', '~', 'e3', '~', 'e3', '~', 'f#3', '~', 'g#3', 'f#3', 'g#3', 'c#4', '~', '~'].join(' ');
+// real hook, pre-chorus/turnaround phrase -- a real TWO-bar melodic idea
+// (bars 23 and 25 of the MIDI, deep in a chroma-confirmed F#/G#/D#
+// region), not one bar repeated. First draft repeated a single bar here,
+// which is likely what sounded off on the first real listen -- these are
+// the two actual consecutive bars, not a guess.
+const hookLiftA = ['c#3', '~', 'c#3', '~', 'e3', '~', 'e3', '~', 'f#3', '~', 'g#3', 'f#3', 'g#3', 'c#4', '~', '~'].join(' ');
+const hookLiftB = ['c#3', '~', 'c#3', '~', 'e3', '~', 'e3', '~', 'g#3', '~', 'f#3', 'e3', 'f#3', 'c#3', '~', '~'].join(' ');
 
 stack(
   // T-8: drums, still a reconstruction (see header) -- four-on-floor kick,
@@ -81,11 +84,11 @@ stack(
   // unparsed note name)
   arrange(
     [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], // verse
-    [1, note(mini(hookLift))], [1, note(mini(hookLift))], // pre-chorus
+    [1, note(mini(hookLiftA))], [1, note(mini(hookLiftB))], // pre-chorus
     [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], // chorus line 1
     [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], // chorus line 2
     [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], // chorus line 3
-    [1, note(mini(hookLift))], [1, note(mini(hookLift))], // chorus turnaround
+    [1, note(mini(hookLiftA))], [1, note(mini(hookLiftB))], // chorus turnaround
   )
     .t8bass()
     .midi(T8_PORT),
