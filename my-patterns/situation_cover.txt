@@ -74,6 +74,13 @@ stack(
   // real recording -- it never changes, regardless of what's happening
   // harmonically above it)
   note(mini(bassRiff)).s1note().midi(S1_PORT),
+  // pin S-1 to CC80=32 (Unison) every cycle -- the only hardware-confirmed
+  // single-note-safe polyMode value (0 and 16 are confirmed silent for a
+  // single note; 40+ auto-generates extra chord-voice pitches not in what
+  // was sent, which is almost certainly what "scale doesn't work" was --
+  // sent once manually during this session, added here so the pattern
+  // doesn't depend on leftover hardware state from earlier testing)
+  s1polyMode(32 / 127).midi(S1_PORT),
 
   // T-8 bass channel: the real hook, alternating A/B through verse+chorus,
   // switching to the real "lift" shape for pre-chorus + the chorus
