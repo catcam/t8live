@@ -17,8 +17,9 @@
 // -- adjust by ear once you're actually listening to the original next to
 // this.
 
-import { t8drum, T8_PORT } from '@strudel/t8';
-import { s1note, S1_PORT } from '@strudel/s1';
+// t8drum/T8_PORT/s1note/S1_PORT/note/stack/setcps are all already global in
+// the REPL (evalScope pulls in @strudel/t8 + @strudel/s1 alongside core) --
+// no import here, the editor's transpiler rejects import/export syntax.
 
 setcps(119 / 60 / 4);
 
