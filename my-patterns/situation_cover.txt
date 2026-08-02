@@ -8,35 +8,101 @@
 // every 4th hit), bass on a Moog Source / Sequential Pro-One with a mono
 // 16-step analog sequencer ("rubbery, elastic" -- PWM'd detuned squares).
 //
-// Bass pattern below is a reconstruction (OpenRouter consult, flagged by it
-// as "confident" on the driving 16ths + octave-bounce shape, uncertain on
-// the exact last-step note -- G#2/F#2 vs a more legato tail). Drum pattern
-// is NOT a literal transcription (no hit-by-hit source found) -- it's a
-// period-accurate TR-808 four-on-floor + backbeat-clap groove built from the
-// confirmed instrumentation facts. Treat both as a starting jam, not gospel
-// -- adjust by ear once you're actually listening to the original next to
-// this.
+// Bass shape (root, root, root+8ve, root, root, fifth over 16 steps) is a
+// reconstruction (OpenRouter consult, flagged by it as "confident" on the
+// driving-16ths/octave-bounce shape, uncertain on the exact last-step note).
+// Drum pattern is NOT a literal transcription (no hit-by-hit source found)
+// -- period-accurate TR-808 four-on-floor + backbeat-clap groove built from
+// confirmed instrumentation facts. Treat all of it as a starting jam, not
+// gospel -- adjust by ear once you're actually listening to the original
+// next to this.
+//
+// FULL ARRANGEMENT (added after lyrics/chord-chart research, Ultimate
+// Guitar tab id 1015704, cross-checked against songfacts/musicianwages'
+// verse-chorus structure description):
+//   verse (4 bars):      C#m - B - C#m - B          (i - VII vamp, static)
+//   pre-chorus (2 bars): F#m - G#                    (iv - V, first real
+//                         functional pull in the whole song -- this is the
+//                         "genius" bit: 90% of the song is a static 2-chord
+//                         loop with zero harmonic motion, so the one place
+//                         a real subdominant->dominant move happens is
+//                         exactly where it's needed to lift into the hook)
+//   chorus (8 bars):     C#m-B x3 (same vamp as verse) then D#-G# on the
+//                         final "don't make a sound just move out" line --
+//                         a chromatic-mediant turnaround (bII-ish -> true V)
+//                         that's the second harmonic surprise, resolving
+//                         back into the verse's C#m.
+// F#m is written "F#" (no quality marker) on the UG chart -- used the
+// diatonic minor iv here since two independent sources agree the song is in
+// C# natural minor; flagging the ambiguity rather than asserting it.
+//
+// Synth hook: T-8's *bass* channel (separate from its rhythm channel,
+// unused until now) carries a syncopated 2-note stab (root on beat 1, fifth
+// on the "and" of beat 3) that's silent through verse+pre-chorus and only
+// enters for the chorus -- standing in for the "memorable synthesizer hook"
+// Songfacts credits Clarke with, since there's no vocalist here to answer.
 
-// t8drum/T8_PORT/s1note/S1_PORT/note/stack/setcps are all already global in
-// the REPL (evalScope pulls in @strudel/t8 + @strudel/s1 alongside core) --
-// no import here, the editor's transpiler rejects import/export syntax.
+// t8drum/t8bass/T8_PORT/s1note/S1_PORT/note/stack/arrange/silence/setcps
+// are all already global in the REPL (evalScope pulls in @strudel/t8 +
+// @strudel/s1 alongside core) -- no import here, the editor's transpiler
+// rejects import/export syntax.
 
 setcps(119 / 60 / 4);
 
+// bass bar: root, root, root+8ve, root, root, fifth (all same base octave
+// except the mid-bar octave jump) -- the confirmed-live-tested shape,
+// applied to every chord in the chart
+const bassBar = (root, oct, fifth) =>
+  `${root}${oct} ~ ~ ~ ${root}${oct} ~ ${root}${oct + 1} ~ ${root}${oct} ~ ~ ~ ${root}${oct} ~ ${fifth}${oct} ~`;
+
+const csm = bassBar('c#', 2, 'g#'); // C#m: root C#, fifth G#
+const bmaj = bassBar('b', 1, 'f#'); // B: root B, fifth F#
+const fsm = bassBar('f#', 2, 'c#'); // F#m: root F#, fifth C#
+const gsharp = bassBar('g#', 2, 'd#'); // G#: root G#, fifth D#
+const dsharp = bassBar('d#', 2, 'a#'); // D#: root D#, fifth A#
+
+// hook stab: root on step 0, fifth on step 10 (syncopated "and of 3"),
+// one octave above the bass line for contrast, tacet everywhere it isn't
+// explicitly given below
+const hookBar = (root, oct, fifth) =>
+  `${root}${oct} ~ ~ ~ ~ ~ ~ ~ ~ ~ ${fifth}${oct} ~ ~ ~ ~ ~`;
+
+const hookCsm = hookBar('c#', 4, 'g#');
+const hookB = hookBar('b', 3, 'f#');
+const hookD = hookBar('d#', 4, 'a#');
+const hookG = hookBar('g#', 4, 'd#');
+
 stack(
-  // T-8: four-on-the-floor kick
+  // T-8: drums run constant through the whole 14-bar arrangement --
+  // four-on-the-floor kick, driving 8th hats, backbeat clap
   t8drum("bd ~ ~ ~ bd ~ ~ ~ bd ~ ~ ~ bd ~ ~ ~").midi(T8_PORT),
-  // T-8: driving 8th-note closed hats
   t8drum("ch ~ ch ~ ch ~ ch ~ ch ~ ch ~ ch ~ ch ~").midi(T8_PORT),
-  // T-8: backbeat clap (2 and 4) -- stand-in for the original's clap+cowbell
   t8drum("~ ~ ~ ~ clap ~ ~ ~ ~ ~ ~ ~ clap ~ ~ ~").midi(T8_PORT),
-  // S-1: bass riff, alternating C#m bar / B major bar (i -- VII vamp)
-  note(
-    "<[c#2 ~ ~ ~ c#2 ~ c#3 ~ c#2 ~ ~ ~ c#2 ~ g#2 ~] [b1 ~ ~ ~ b1 ~ b2 ~ b1 ~ ~ ~ b1 ~ f#2 ~]>"
+
+  // S-1: bassline follows the full chord chart, one bar per chord
+  arrange(
+    [1, note(csm)], [1, note(bmaj)], [1, note(csm)], [1, note(bmaj)], // verse
+    [1, note(fsm)], [1, note(gsharp)], // pre-chorus
+    [1, note(csm)], [1, note(bmaj)], // chorus line 1
+    [1, note(csm)], [1, note(bmaj)], // chorus line 2
+    [1, note(csm)], [1, note(bmaj)], // chorus line 3
+    [1, note(dsharp)], [1, note(gsharp)], // chorus turnaround
   )
     .s1note()
     .midi(S1_PORT),
+
+  // T-8 bass channel: silent hook through verse+pre-chorus, stabs in for chorus
+  arrange(
+    [6, silence], // verse (4) + pre-chorus (2)
+    [1, note(hookCsm)], [1, note(hookB)],
+    [1, note(hookCsm)], [1, note(hookB)],
+    [1, note(hookCsm)], [1, note(hookB)],
+    [1, note(hookD)], [1, note(hookG)],
+  )
+    .t8bass()
+    .midi(T8_PORT),
 );
 
-// No vocal/lead here on purpose -- Alison Moyet's melody is the one part
-// that genuinely can't be covered by two synths, this is instrumental-only.
+// No vocal/lead here on purpose -- Alison Moyet's melody (and the "Move
+// out, don't mess around" hook itself) is the one part that genuinely
+// can't be covered by two synths. This is instrumental-only.
