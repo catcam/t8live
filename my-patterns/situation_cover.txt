@@ -59,8 +59,11 @@ setcps(117.5 / 60 / 4);
 // bass bar: root, root, root+8ve, root, root, fifth (all same base octave
 // except the mid-bar octave jump) -- the confirmed-live-tested shape,
 // applied to every chord in the chart
+// (plain concatenation, not a template literal -- the REPL's transpiler
+// auto-wraps ANY backtick string as mini-notation using just its raw text
+// before interpolation, which breaks on the literal "${...}" sequences)
 const bassBar = (root, oct, fifth) =>
-  `${root}${oct} ~ ~ ~ ${root}${oct} ~ ${root}${oct + 1} ~ ${root}${oct} ~ ~ ~ ${root}${oct} ~ ${fifth}${oct} ~`;
+  [root + oct, '~', '~', '~', root + oct, '~', root + (oct + 1), '~', root + oct, '~', '~', '~', root + oct, '~', fifth + oct, '~'].join(' ');
 
 const csm = bassBar('c#', 2, 'g#'); // C#m: root C#, fifth G#
 const bmaj = bassBar('b', 1, 'f#'); // B: root B, fifth F#
@@ -72,7 +75,7 @@ const dsharp = bassBar('d#', 2, 'a#'); // D#: root D#, fifth A#
 // one octave above the bass line for contrast, tacet everywhere it isn't
 // explicitly given below
 const hookBar = (root, oct, fifth) =>
-  `${root}${oct} ~ ~ ~ ~ ~ ~ ~ ~ ~ ${fifth}${oct} ~ ~ ~ ~ ~`;
+  [root + oct, '~', '~', '~', '~', '~', '~', '~', '~', '~', fifth + oct, '~', '~', '~', '~', '~'].join(' ');
 
 const hookCsm = hookBar('c#', 4, 'g#');
 const hookB = hookBar('b', 3, 'f#');
