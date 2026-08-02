@@ -1,125 +1,91 @@
 // Yazoo -- "Situation" (1982) cover for T-8 + S-1
-// Researched via web (gemtracks/tunebat/synpop.com/KVR) + OpenRouter consult
-// (see t8live.fyi mac_bridge notes / session letter for sources).
+// Rebuilt from a REAL MIDI transcription (YAZOO_-_Situation.mid, Nikša's
+// Desktop, 2026-08-02) after web research + OpenRouter reconstruction both
+// turned out to guess wrong about the actual arrangement. Read via mido:
+// tempo 512821 us/beat = exactly 117.0 BPM, 480 ticks/beat, type 1, 19
+// tracks. Two tracks mattered:
+//   track 3 "synth bass1" (GM prog 38, range B2-C#3, 1032 notes) -- THE
+//     driving bassline everyone remembers.
+//   track 1 (unnamed lead, GM prog 62, range C#4-C#5, 833 notes) -- the
+//     high melodic hook, doubled an octave down by track 2 (GM prog 81
+//     "lead2 sawtooth", constant C#4/B3 pattern).
 //
-// Key: C# minor. Whole song is a two-chord vamp: i (C#m) -- VII (B major).
-// Tempo: 117.5 BPM (librosa beat-tracking against the real Desktop mp3,
-// 2026-08-02 -- web sources said 118-120, close but the actual measurement
-// wins). Chroma analysis of the full track independently confirms the
-// C#m-B vamp (B/C# are the two most energetic pitch classes by a wide
-// margin) and shows periodic F#/G#/D# clusters at roughly the intervals
-// you'd expect for a repeating pre-chorus+chorus-turnaround -- real
-// corroboration for this arrangement's chord choices, not just secondhand
-// sources agreeing with each other.
-// Original gear: TR-808 drums (crisp claps + cowbell, claps swung ~10ms late
-// every 4th hit), bass on a Moog Source / Sequential Pro-One with a mono
-// 16-step analog sequencer ("rubbery, elastic" -- PWM'd detuned squares).
+// Real finding that overturned the whole earlier model: the bassline is a
+// CONSTANT, UNCHANGING 7-note ostinato -- same riff every single bar for
+// the entire 5:47, verified by dumping bars 6-9 AND bars 21-25 (deep into
+// a pre-chorus/turnaround region by chroma analysis) and getting byte-
+// identical note sequences both times. It does NOT follow the chord chart.
+// The actual harmonic motion lives entirely in the lead/hook track, which
+// alternates a stable 2-bar A/B shape through the verse/chorus vamp, then
+// switches register (E3-F#3-G#3-C#4) for the pre-chorus/turnaround lift.
+// This inverts my first two drafts, which put the "follows the chords"
+// job on the bass and a static stab on the hook -- backwards.
 //
-// Bass shape (root, root, root+8ve, root, root, fifth over 16 steps) is a
-// reconstruction (OpenRouter consult, flagged by it as "confident" on the
-// driving-16ths/octave-bounce shape, uncertain on the exact last-step note).
-// Drum pattern is NOT a literal transcription (no hit-by-hit source found)
-// -- period-accurate TR-808 four-on-floor + backbeat-clap groove built from
-// confirmed instrumentation facts. Treat all of it as a starting jam, not
-// gospel -- adjust by ear once you're actually listening to the original
-// next to this.
+// Second real finding: the bass track's first note-on is at bar 6 (~12s
+// in), the lead hook's is at bar 2 (~4s in) -- neither starts at bar 0.
+// Nikša's ear-check said the hook is there "literally clean from the
+// first second," which is closer to the real ~4s than my first-draft
+// assumption of nothing-until-the-chorus, so the hook here starts at bar
+// 0 of this arrangement (a small liberty for a tight instrumental loop,
+// not literal-transcription purism) while the bass keeps its real,
+// unchanging 7-note shape once it's your turn to bring it in.
 //
-// FULL ARRANGEMENT (added after lyrics/chord-chart research, Ultimate
-// Guitar tab id 1015704, cross-checked against songfacts/musicianwages'
-// verse-chorus structure description):
-//   verse (4 bars):      C#m - B - C#m - B          (i - VII vamp, static)
-//   pre-chorus (2 bars): F#m - G#                    (iv - V, first real
-//                         functional pull in the whole song -- this is the
-//                         "genius" bit: 90% of the song is a static 2-chord
-//                         loop with zero harmonic motion, so the one place
-//                         a real subdominant->dominant move happens is
-//                         exactly where it's needed to lift into the hook)
-//   chorus (8 bars):     C#m-B x3 (same vamp as verse) then D#-G# on the
-//                         final "don't make a sound just move out" line --
-//                         a chromatic-mediant turnaround (bII-ish -> true V)
-//                         that's the second harmonic surprise, resolving
-//                         back into the verse's C#m.
-// F#m is written "F#" (no quality marker) on the UG chart -- used the
-// diatonic minor iv here since two independent sources agree the song is in
-// C# natural minor; flagging the ambiguity rather than asserting it.
-//
-// Synth hook: T-8's *bass* channel (separate from its rhythm channel,
-// unused until now) carries a syncopated 2-note stab (root on beat 1, fifth
-// on the "and" of beat 3), present from bar 1 through the whole arrangement
-// -- standing in for the "memorable synthesizer hook" Songfacts credits
-// Clarke with, since there's no vocalist here to answer. (First draft had
-// this silent until the chorus; Nikša corrected that by ear -- the hook is
-// there from the first second, not something revealed partway through.)
+// Drum pattern is still NOT a transcription (the MIDI file has real drum
+// tracks split by GM note number across tracks 8-18, but reconciling 8
+// overlapping tracks against the T-8's 6 rhythm voices is future work,
+// not done tonight) -- this is the same period-accurate TR-808 groove as
+// before: four-on-floor kick, driving 8th hats, backbeat clap.
 
 // t8drum/t8bass/T8_PORT/s1note/S1_PORT/note/stack/arrange/silence/setcps
 // are all already global in the REPL (evalScope pulls in @strudel/t8 +
 // @strudel/s1 alongside core) -- no import here, the editor's transpiler
 // rejects import/export syntax.
 
-setcps(117.5 / 60 / 4);
+setcps(117 / 60 / 4);
 
-// bass bar: root, root, root+8ve, root, root, fifth (all same base octave
-// except the mid-bar octave jump) -- the confirmed-live-tested shape,
-// applied to every chord in the chart
-// (plain concatenation, not a template literal -- the REPL's transpiler
-// auto-wraps ANY backtick string as mini-notation using just its raw text
-// before interpolation, which breaks on the literal "${...}" sequences)
-const bassBar = (root, oct, fifth) =>
-  [root + oct, '~', '~', '~', root + oct, '~', root + (oct + 1), '~', root + oct, '~', '~', '~', root + oct, '~', fifth + oct, '~'].join(' ');
+// real bass ostinato (track 3), constant every bar, steps 0/4/7/9/10/12/14
+// -- built with array.join(' '), not a template literal: the REPL
+// transpiler auto-wraps ANY backtick string as mini-notation using just
+// its raw pre-interpolation text, which breaks on "${...}" sequences
+const bassRiff = ['c#3', '~', '~', '~', 'c#3', '~', '~', 'b2', '~', 'b2', 'b2', '~', 'b3', '~', 'b2', '~'].join(' ');
 
-const csm = bassBar('c#', 2, 'g#'); // C#m: root C#, fifth G#
-const bmaj = bassBar('b', 1, 'f#'); // B: root B, fifth F#
-const fsm = bassBar('f#', 2, 'c#'); // F#m: root F#, fifth C#
-const gsharp = bassBar('g#', 2, 'd#'); // G#: root G#, fifth D#
-const dsharp = bassBar('d#', 2, 'a#'); // D#: root D#, fifth A#
+// real hook, verse/chorus shape -- alternates every bar (line A on the
+// "C#-feeling" bar, line B on the "B-feeling" bar, matching how track 1
+// actually alternates bar-to-bar in the MIDI)
+const hookLineA = ['c#4', '~', 'c#4', '~', 'c#5', '~', '~', '~', '~', '~', '~', '~', 'b4', 'g#4', 'b4', 'c#5'].join(' ');
+const hookLineB = ['c#4', '~', 'c#4', '~', 'c#5', '~', '~', '~', '~', '~', 'b4', '~', 'e5', 'd#5', 'b4', 'c#5'].join(' ');
 
-// hook stab: root on step 0, fifth on step 10 (syncopated "and of 3"),
-// one octave above the bass line for contrast, tacet everywhere it isn't
-// explicitly given below
-const hookBar = (root, oct, fifth) =>
-  [root + oct, '~', '~', '~', '~', '~', '~', '~', '~', '~', fifth + oct, '~', '~', '~', '~', '~'].join(' ');
-
-const hookCsm = hookBar('c#', 4, 'g#');
-const hookB = hookBar('b', 3, 'f#');
-const hookF = hookBar('f#', 4, 'c#');
-const hookD = hookBar('d#', 4, 'a#');
-const hookG = hookBar('g#', 4, 'd#');
+// real hook, pre-chorus/turnaround shape (from bar 23 of the MIDI, deep in
+// a chroma-confirmed F#/G#/D# region) -- denser, lower register, this is
+// where the song's one real burst of harmonic motion actually lives
+const hookLift = ['c#3', '~', 'c#3', '~', 'e3', '~', 'e3', '~', 'f#3', '~', 'g#3', 'f#3', 'g#3', 'c#4', '~', '~'].join(' ');
 
 stack(
-  // T-8: drums run constant through the whole 14-bar arrangement --
-  // four-on-the-floor kick, driving 8th hats, backbeat clap
+  // T-8: drums, still a reconstruction (see header) -- four-on-floor kick,
+  // driving 8th hats, backbeat clap
   t8drum("bd ~ ~ ~ bd ~ ~ ~ bd ~ ~ ~ bd ~ ~ ~").midi(T8_PORT),
   t8drum("ch ~ ch ~ ch ~ ch ~ ch ~ ch ~ ch ~ ch ~").midi(T8_PORT),
   t8drum("~ ~ ~ ~ clap ~ ~ ~ ~ ~ ~ ~ clap ~ ~ ~").midi(T8_PORT),
 
-  // S-1: bassline follows the full chord chart, one bar per chord
-  // (mini() wraps each bar string explicitly -- note() only auto-parses
-  // mini-notation for string LITERALS the transpiler can see statically;
-  // a runtime-built string in a variable needs an explicit mini() call,
-  // otherwise the whole bar string is treated as a single unparsed note
-  // name, which is exactly the "not a note" error this had at first)
-  arrange(
-    [1, note(mini(csm))], [1, note(mini(bmaj))], [1, note(mini(csm))], [1, note(mini(bmaj))], // verse
-    [1, note(mini(fsm))], [1, note(mini(gsharp))], // pre-chorus
-    [1, note(mini(csm))], [1, note(mini(bmaj))], // chorus line 1
-    [1, note(mini(csm))], [1, note(mini(bmaj))], // chorus line 2
-    [1, note(mini(csm))], [1, note(mini(bmaj))], // chorus line 3
-    [1, note(mini(dsharp))], [1, note(mini(gsharp))], // chorus turnaround
-  )
-    .s1note()
-    .midi(S1_PORT),
+  // S-1: the real bass ostinato, constant for all 14 bars (matches the
+  // real recording -- it never changes, regardless of what's happening
+  // harmonically above it)
+  note(mini(bassRiff)).s1note().midi(S1_PORT),
 
-  // T-8 bass channel: hook plays from bar 1, the whole way through --
-  // Nikša's ear-check correction (2026-08-02): the song's synth hook is
-  // there from the first second, it isn't something withheld and revealed
-  // only at the chorus. Follows the same chord chart as the S-1 bassline.
+  // T-8 bass channel: the real hook, alternating A/B through verse+chorus,
+  // switching to the real "lift" shape for pre-chorus + the chorus
+  // turnaround (mini() wraps each bar string explicitly -- note() only
+  // auto-parses mini-notation for string LITERALS the transpiler can see
+  // statically; a runtime-built string in a variable needs an explicit
+  // mini() call, otherwise the whole bar string gets treated as one
+  // unparsed note name)
   arrange(
-    [1, note(mini(hookCsm))], [1, note(mini(hookB))], [1, note(mini(hookCsm))], [1, note(mini(hookB))], // verse
-    [1, note(mini(hookF))], [1, note(mini(hookG))], // pre-chorus
-    [1, note(mini(hookCsm))], [1, note(mini(hookB))], // chorus line 1
-    [1, note(mini(hookCsm))], [1, note(mini(hookB))], // chorus line 2
-    [1, note(mini(hookCsm))], [1, note(mini(hookB))], // chorus line 3
-    [1, note(mini(hookD))], [1, note(mini(hookG))], // chorus turnaround
+    [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], // verse
+    [1, note(mini(hookLift))], [1, note(mini(hookLift))], // pre-chorus
+    [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], // chorus line 1
+    [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], // chorus line 2
+    [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], // chorus line 3
+    [1, note(mini(hookLift))], [1, note(mini(hookLift))], // chorus turnaround
   )
     .t8bass()
     .midi(T8_PORT),
