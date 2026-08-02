@@ -90,13 +90,18 @@ stack(
   t8drum("~ ~ ~ ~ clap ~ ~ ~ ~ ~ ~ ~ clap ~ ~ ~").midi(T8_PORT),
 
   // S-1: bassline follows the full chord chart, one bar per chord
+  // (mini() wraps each bar string explicitly -- note() only auto-parses
+  // mini-notation for string LITERALS the transpiler can see statically;
+  // a runtime-built string in a variable needs an explicit mini() call,
+  // otherwise the whole bar string is treated as a single unparsed note
+  // name, which is exactly the "not a note" error this had at first)
   arrange(
-    [1, note(csm)], [1, note(bmaj)], [1, note(csm)], [1, note(bmaj)], // verse
-    [1, note(fsm)], [1, note(gsharp)], // pre-chorus
-    [1, note(csm)], [1, note(bmaj)], // chorus line 1
-    [1, note(csm)], [1, note(bmaj)], // chorus line 2
-    [1, note(csm)], [1, note(bmaj)], // chorus line 3
-    [1, note(dsharp)], [1, note(gsharp)], // chorus turnaround
+    [1, note(mini(csm))], [1, note(mini(bmaj))], [1, note(mini(csm))], [1, note(mini(bmaj))], // verse
+    [1, note(mini(fsm))], [1, note(mini(gsharp))], // pre-chorus
+    [1, note(mini(csm))], [1, note(mini(bmaj))], // chorus line 1
+    [1, note(mini(csm))], [1, note(mini(bmaj))], // chorus line 2
+    [1, note(mini(csm))], [1, note(mini(bmaj))], // chorus line 3
+    [1, note(mini(dsharp))], [1, note(mini(gsharp))], // chorus turnaround
   )
     .s1note()
     .midi(S1_PORT),
@@ -104,10 +109,10 @@ stack(
   // T-8 bass channel: silent hook through verse+pre-chorus, stabs in for chorus
   arrange(
     [6, silence], // verse (4) + pre-chorus (2)
-    [1, note(hookCsm)], [1, note(hookB)],
-    [1, note(hookCsm)], [1, note(hookB)],
-    [1, note(hookCsm)], [1, note(hookB)],
-    [1, note(hookD)], [1, note(hookG)],
+    [1, note(mini(hookCsm))], [1, note(mini(hookB))],
+    [1, note(mini(hookCsm))], [1, note(mini(hookB))],
+    [1, note(mini(hookCsm))], [1, note(mini(hookB))],
+    [1, note(mini(hookD))], [1, note(mini(hookG))],
   )
     .t8bass()
     .midi(T8_PORT),
