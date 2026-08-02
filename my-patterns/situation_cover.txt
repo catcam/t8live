@@ -3,7 +3,14 @@
 // (see t8live.fyi mac_bridge notes / session letter for sources).
 //
 // Key: C# minor. Whole song is a two-chord vamp: i (C#m) -- VII (B major).
-// Tempo: ~119 BPM (sources vary 118-120).
+// Tempo: 117.5 BPM (librosa beat-tracking against the real Desktop mp3,
+// 2026-08-02 -- web sources said 118-120, close but the actual measurement
+// wins). Chroma analysis of the full track independently confirms the
+// C#m-B vamp (B/C# are the two most energetic pitch classes by a wide
+// margin) and shows periodic F#/G#/D# clusters at roughly the intervals
+// you'd expect for a repeating pre-chorus+chorus-turnaround -- real
+// corroboration for this arrangement's chord choices, not just secondhand
+// sources agreeing with each other.
 // Original gear: TR-808 drums (crisp claps + cowbell, claps swung ~10ms late
 // every 4th hit), bass on a Moog Source / Sequential Pro-One with a mono
 // 16-step analog sequencer ("rubbery, elastic" -- PWM'd detuned squares).
@@ -47,7 +54,7 @@
 // @strudel/s1 alongside core) -- no import here, the editor's transpiler
 // rejects import/export syntax.
 
-setcps(119 / 60 / 4);
+setcps(117.5 / 60 / 4);
 
 // bass bar: root, root, root+8ve, root, root, fifth (all same base octave
 // except the mid-bar octave jump) -- the confirmed-live-tested shape,
