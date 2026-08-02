@@ -52,27 +52,27 @@ const bassRiff = ['c#3', '~', '~', '~', 'c#3', '~', '~', 'b2', '~', 'b2', 'b2', 
 // real hook, verse/chorus shape -- alternates every bar (line A on the
 // "C#-feeling" bar, line B on the "B-feeling" bar, matching how track 1
 // actually alternates bar-to-bar in the MIDI)
-// tails (steps 12-15) thinned the same way as hookLift below -- both had
-// the same 4-notes-in-4-consecutive-steps density problem, missed this
-// one on the first pass, Nikša caught it by ear ("fale note na kraju riffa")
-const hookLineA = ['c#4', '~', 'c#4', '~', 'c#5', '~', '~', '~', '~', '~', '~', '~', 'b4', '~', '~', 'c#5'].join(' ');
-const hookLineB = ['c#4', '~', 'c#4', '~', 'c#5', '~', '~', '~', '~', '~', 'b4', '~', 'e5', '~', '~', 'c#5'].join(' ');
+// Second pass of thinning still dropped notes ("još neke preskočene su").
+// Stepping back from patching individual clusters to a blanket rule: every
+// note at least 4 steps (~0.5s) apart, across the whole riff, not just the
+// tails -- trades some of the real transcription's melodic density for
+// something the T-8's single-voice bass channel can actually articulate
+// live over MIDI. 3 notes per bar instead of 5.
+const hookLineA = ['c#4', '~', '~', '~', 'c#5', '~', '~', '~', '~', '~', '~', '~', 'b4', '~', '~', '~'].join(' ');
+const hookLineB = ['c#4', '~', '~', '~', 'c#5', '~', '~', '~', '~', '~', '~', '~', 'e5', '~', '~', '~'].join(' ');
 
 // real hook, pre-chorus/turnaround phrase -- a real TWO-bar melodic idea
 // (bars 23 and 25 of the MIDI, deep in a chroma-confirmed F#/G#/D#
 // region), not one bar repeated. First draft repeated a single bar here,
 // which is likely what sounded off on the first real listen -- these are
 // the two actual consecutive bars, not a guess.
-// Thinned steps 10-13 from 4 notes down to 2 (dropped the middle repeats):
-// the T-8's bass channel is a single-voice groovebox synth, and 4 notes in
-// ~0.38s is tight for it to cleanly articulate -- Nikša suspected missing
-// notes there. My own onset-detection attempt to confirm this was
-// unreliable (picked up sub-note ripples, not real onsets -- same class of
-// problem as the earlier failed CC80 FFT sweep), so this is a precautionary
-// simplification based on the plausible timing issue, not a confirmed
-// root cause.
-const hookLiftA = ['c#3', '~', 'c#3', '~', 'e3', '~', 'e3', '~', 'f#3', '~', 'g#3', '~', '~', 'c#4', '~', '~'].join(' ');
-const hookLiftB = ['c#3', '~', 'c#3', '~', 'e3', '~', 'e3', '~', 'g#3', '~', 'f#3', '~', '~', 'c#3', '~', '~'].join(' ');
+// Same blanket 4-step-minimum-spacing rule applied here as hookLineA/B
+// above -- one note per beat (4 notes/bar) instead of the real
+// transcription's denser 9-note shape, since the T-8's single-voice bass
+// channel kept dropping notes at higher density even after two rounds of
+// targeted cluster-thinning.
+const hookLiftA = ['c#3', '~', '~', '~', 'e3', '~', '~', '~', 'f#3', '~', '~', '~', 'g#3', '~', '~', '~'].join(' ');
+const hookLiftB = ['c#3', '~', '~', '~', 'e3', '~', '~', '~', 'g#3', '~', '~', '~', 'f#3', '~', '~', '~'].join(' ');
 
 stack(
   // T-8: drums, still a reconstruction (see header) -- four-on-floor kick,
