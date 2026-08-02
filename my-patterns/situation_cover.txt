@@ -60,8 +60,16 @@ const hookLineB = ['c#4', '~', 'c#4', '~', 'c#5', '~', '~', '~', '~', '~', 'b4',
 // region), not one bar repeated. First draft repeated a single bar here,
 // which is likely what sounded off on the first real listen -- these are
 // the two actual consecutive bars, not a guess.
-const hookLiftA = ['c#3', '~', 'c#3', '~', 'e3', '~', 'e3', '~', 'f#3', '~', 'g#3', 'f#3', 'g#3', 'c#4', '~', '~'].join(' ');
-const hookLiftB = ['c#3', '~', 'c#3', '~', 'e3', '~', 'e3', '~', 'g#3', '~', 'f#3', 'e3', 'f#3', 'c#3', '~', '~'].join(' ');
+// Thinned steps 10-13 from 4 notes down to 2 (dropped the middle repeats):
+// the T-8's bass channel is a single-voice groovebox synth, and 4 notes in
+// ~0.38s is tight for it to cleanly articulate -- Nikša suspected missing
+// notes there. My own onset-detection attempt to confirm this was
+// unreliable (picked up sub-note ripples, not real onsets -- same class of
+// problem as the earlier failed CC80 FFT sweep), so this is a precautionary
+// simplification based on the plausible timing issue, not a confirmed
+// root cause.
+const hookLiftA = ['c#3', '~', 'c#3', '~', 'e3', '~', 'e3', '~', 'f#3', '~', 'g#3', '~', '~', 'c#4', '~', '~'].join(' ');
+const hookLiftB = ['c#3', '~', 'c#3', '~', 'e3', '~', 'e3', '~', 'g#3', '~', 'f#3', '~', '~', 'c#3', '~', '~'].join(' ');
 
 stack(
   // T-8: drums, still a reconstruction (see header) -- four-on-floor kick,
