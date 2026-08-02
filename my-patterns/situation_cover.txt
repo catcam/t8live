@@ -98,9 +98,9 @@ stack(
   arrange(
     [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], // verse
     [1, note(mini(hookLiftA))], [1, note(mini(hookLiftB))], // pre-chorus
-    [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], // chorus line 1
-    [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], // chorus line 2
-    [1, note(mini(hookLineA))], [1, note(mini(hookLineB))], // chorus line 3
+    [1, note(mini(hookLiftA))], [1, note(mini(hookLiftB))], // chorus line 1 -- Nikša: carry the lift riff into the chorus too
+    [1, note(mini(hookLiftA))], [1, note(mini(hookLiftB))], // chorus line 2
+    [1, note(mini(hookLiftA))], [1, note(mini(hookLiftB))], // chorus line 3
     [1, note(mini(hookLiftA))], [1, note(mini(hookLiftB))], // chorus turnaround
   )
     .t8bass()
