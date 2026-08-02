@@ -77,10 +77,16 @@ stack(
   // pin S-1 to CC80=32 (Unison) every cycle -- the only hardware-confirmed
   // single-note-safe polyMode value (0 and 16 are confirmed silent for a
   // single note; 40+ auto-generates extra chord-voice pitches not in what
-  // was sent, which is almost certainly what "scale doesn't work" was --
-  // sent once manually during this session, added here so the pattern
-  // doesn't depend on leftover hardware state from earlier testing)
+  // was sent)
   s1polyMode(32 / 127).midi(S1_PORT),
+  // reset fineTune (CC76) and transposeSw (CC77) to center (0.5 = 64/127)
+  // every cycle. The REAL cause of the live "off tune" symptom -- one of
+  // these two was left at a non-center value from earlier SHIFT-combo CC
+  // testing this session, a genuine pitch offset independent of polyMode.
+  // Confirmed fixed by ear once reset (Nikša: "puno bolje" / much better).
+  // Pinned here so the pattern doesn't depend on leftover hardware state.
+  s1cc('fineTune', 0.5).midi(S1_PORT),
+  s1cc('transposeSw', 0.5).midi(S1_PORT),
 
   // T-8 bass channel: the real hook, alternating A/B through verse+chorus,
   // switching to the real "lift" shape for pre-chorus + the chorus
